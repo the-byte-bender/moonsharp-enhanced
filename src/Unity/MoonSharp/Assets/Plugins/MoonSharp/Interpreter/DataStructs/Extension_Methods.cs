@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace MoonSharp.Interpreter
 {
@@ -16,14 +17,10 @@ namespace MoonSharp.Interpreter
 		/// <param name="dictionary">The dictionary.</param>
 		/// <param name="key">The key.</param>
 		/// <returns></returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key)
 		{
-			TValue v;
-
-			if (dictionary.TryGetValue(key, out v))
-				return v;
-
-			return default(TValue);
+			return dictionary.TryGetValue(key, out var v) ? v : default(TValue);
 		}
 
 

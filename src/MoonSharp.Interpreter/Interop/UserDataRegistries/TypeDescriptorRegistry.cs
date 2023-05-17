@@ -236,7 +236,7 @@ namespace MoonSharp.Interpreter.Interop.UserDataRegistries
 		}
 
 
-
+		private static List<IUserDataDescriptor> descriptors = new(16);
 		/// <summary>
 		/// Gets the best possible type descriptor for a specified CLR type.
 		/// </summary>
@@ -246,94 +246,104 @@ namespace MoonSharp.Interpreter.Interop.UserDataRegistries
 		internal static IUserDataDescriptor GetDescriptorForType(Type type, bool searchInterfaces)
 		{
 			lock (s_Lock)
-			{
-				IUserDataDescriptor typeDescriptor = null;
+            {
+                IUserDataDescriptor typeDescriptor = null;
 
-				// if the type has been explicitly registered, return its descriptor as it's complete
-				if (s_TypeRegistry.ContainsKey(type))
-					return s_TypeRegistry[type];
+                // if the type has been explicitly registered, return its descriptor as it's complete
+                if (s_TypeRegistry.ContainsKey(type))
+                    return s_TypeRegistry[type];
 
-				if (RegistrationPolicy.AllowTypeAutoRegistration(type))
+                if (RegistrationPolicy.AllowTypeAutoRegistration(type))
+                {
+                    // no autoreg of delegates
+                    if (!Framework.Do.IsAssignableFrom((typeof(Delegate)), type))
+                    {
+                        return RegisterType_Impl(type, DefaultAccessMode, type.FullName, null);
+                    }
+                }
+
+                // search for the base object descriptors
+                for (Type t = type; t != null; t = Framework.Do.GetBaseType(t))
+                {
+                    IUserDataDescriptor u;
+
+                    if (s_TypeRegistry.TryGetValue(t, out u))
+                    {
+                        typeDescriptor = u;
+                        break;
+                    }
+                    else if (Framework.Do.IsGenericType(t))
+                    {
+                        if (s_TypeRegistry.TryGetValue(t.GetGenericTypeDefinition(), out u))
+                        {
+                            typeDescriptor = u;
+                            break;
+                        }
+                    }
+                }
+
+                if (typeDescriptor is IGeneratorUserDataDescriptor)
+                    typeDescriptor = ((IGeneratorUserDataDescriptor)typeDescriptor).Generate(type);
+
+
+                // we should not search interfaces (for example, it's just for statics..), no need to look further
+                if (!searchInterfaces)
+                    return typeDescriptor;
+
+                descriptors.Clear();
+
+                if (typeDescriptor != null)
+                    descriptors.Add(typeDescriptor);
+
+
+                if (searchInterfaces)
+                {
+                    foreach (Type interfaceType in Framework.Do.GetInterfaces(type))
+                    {
+                        IUserDataDescriptor interfaceDescriptor;
+
+                        if (s_TypeRegistry.TryGetValue(interfaceType, out interfaceDescriptor))
+                        {
+                            if (interfaceDescriptor is IGeneratorUserDataDescriptor)
+                                interfaceDescriptor = ((IGeneratorUserDataDescriptor)interfaceDescriptor).Generate(type);
+
+                            if (interfaceDescriptor != null)
+                                descriptors.Add(interfaceDescriptor);
+                        }
+                        else if (Framework.Do.IsGenericType(interfaceType))
+                        {
+                            if (s_TypeRegistry.TryGetValue(interfaceType.GetGenericTypeDefinition(), out interfaceDescriptor))
+                            {
+                                if (interfaceDescriptor is IGeneratorUserDataDescriptor)
+                                    interfaceDescriptor = ((IGeneratorUserDataDescriptor)interfaceDescriptor).Generate(type);
+
+                                if (interfaceDescriptor != null)
+                                    descriptors.Add(interfaceDescriptor);
+                            }
+                        }
+                    }
+                }
+
+                var finalDescriptor = BuildFromDescriptorList(type, descriptors);
+				if (finalDescriptor != null)
 				{
-					// no autoreg of delegates
-					if (!Framework.Do.IsAssignableFrom((typeof(Delegate)), type))
-					{
-						return RegisterType_Impl(type, DefaultAccessMode, type.FullName, null);
-					}
+					PerformRegistration(type, finalDescriptor, null);
 				}
+				return finalDescriptor;
+            }
+        }
 
-				// search for the base object descriptors
-				for (Type t = type; t != null; t = Framework.Do.GetBaseType(t))
-				{
-					IUserDataDescriptor u;
+        private static IUserDataDescriptor BuildFromDescriptorList(Type type, List<IUserDataDescriptor> descriptors)
+        {
+            if (descriptors.Count == 1)
+                return descriptors[0];
+            else if (descriptors.Count == 0)
+                return null;
+            else
+                return new CompositeUserDataDescriptor(descriptors.ToList(), type);
+        }
 
-					if (s_TypeRegistry.TryGetValue(t, out u))
-					{
-						typeDescriptor = u;
-						break;
-					}
-					else if (Framework.Do.IsGenericType(t))
-					{
-						if (s_TypeRegistry.TryGetValue(t.GetGenericTypeDefinition(), out u))
-						{
-							typeDescriptor = u;
-							break;
-						}
-					}
-				}
-
-				if (typeDescriptor is IGeneratorUserDataDescriptor)
-					typeDescriptor = ((IGeneratorUserDataDescriptor)typeDescriptor).Generate(type);
-
-
-				// we should not search interfaces (for example, it's just for statics..), no need to look further
-				if (!searchInterfaces)
-					return typeDescriptor;
-
-				List<IUserDataDescriptor> descriptors = new List<IUserDataDescriptor>();
-
-				if (typeDescriptor != null)
-					descriptors.Add(typeDescriptor);
-
-
-				if (searchInterfaces)
-				{
-					foreach (Type interfaceType in Framework.Do.GetInterfaces(type))
-					{
-						IUserDataDescriptor interfaceDescriptor;
-
-						if (s_TypeRegistry.TryGetValue(interfaceType, out interfaceDescriptor))
-						{
-							if (interfaceDescriptor is IGeneratorUserDataDescriptor)
-								interfaceDescriptor = ((IGeneratorUserDataDescriptor)interfaceDescriptor).Generate(type);
-
-							if (interfaceDescriptor != null)
-								descriptors.Add(interfaceDescriptor);
-						}
-						else if (Framework.Do.IsGenericType(interfaceType))
-						{
-							if (s_TypeRegistry.TryGetValue(interfaceType.GetGenericTypeDefinition(), out interfaceDescriptor))
-							{
-								if (interfaceDescriptor is IGeneratorUserDataDescriptor)
-									interfaceDescriptor = ((IGeneratorUserDataDescriptor)interfaceDescriptor).Generate(type);
-
-								if (interfaceDescriptor != null)
-									descriptors.Add(interfaceDescriptor);
-							}
-						}
-					}
-				}
-
-				if (descriptors.Count == 1)
-					return descriptors[0];
-				else if (descriptors.Count == 0)
-					return null;
-				else
-					return new CompositeUserDataDescriptor(descriptors, type);
-			}
-		}
-
-		private static bool FrameworkIsAssignableFrom(Type type)
+        private static bool FrameworkIsAssignableFrom(Type type)
 		{
 			throw new NotImplementedException();
 		}

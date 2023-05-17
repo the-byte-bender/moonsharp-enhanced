@@ -27,11 +27,11 @@ namespace MoonSharp.Interpreter.Tree.Expressions
 				case TokenType.Number:
 				case TokenType.Number_Hex:
 				case TokenType.Number_HexFloat:
-					m_Value = DynValue.NewNumber(t.GetNumberValue()).AsReadOnly();
+					m_Value = DynValue.NewLiteralNumber(t.GetNumberValue());
 					break;
 				case TokenType.String:
 				case TokenType.String_Long:
-					m_Value = DynValue.NewString(t.Text).AsReadOnly();
+					m_Value = DynValue.NewString(t.Text);
 					break;
 				case TokenType.True:
 					m_Value = DynValue.True;

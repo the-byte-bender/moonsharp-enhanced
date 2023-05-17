@@ -91,12 +91,6 @@ namespace MoonSharp.Interpreter.DataStructs
 			m_HeadIdx = 0;
 		}
 
-		public void ClearUsed()
-		{
-			Array.Clear(m_Storage, 0, m_HeadIdx);
-			m_HeadIdx = 0;
-		}
-
 		public int Count
 		{
 			get { return m_HeadIdx; }

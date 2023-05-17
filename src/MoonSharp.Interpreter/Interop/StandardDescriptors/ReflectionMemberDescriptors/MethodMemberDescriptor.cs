@@ -42,74 +42,89 @@ namespace MoonSharp.Interpreter.Interop
 		/// <param name="accessMode">The interop access mode.</param>
 		/// <exception cref="System.ArgumentException">Invalid accessMode</exception>
 		public MethodMemberDescriptor(MethodBase methodBase, InteropAccessMode accessMode = InteropAccessMode.Default)
-		{
-			CheckMethodIsCompatible(methodBase, true);
+        {
+            ParameterInfo[] reflectionParams = methodBase.GetParameters();
+            CheckMethodIsCompatible(methodBase, true, reflectionParams);
 
-			IsConstructor = (methodBase is ConstructorInfo);
-			this.MethodInfo = methodBase;
+            IsConstructor = (methodBase is ConstructorInfo);
+            this.MethodInfo = methodBase;
 
-			bool isStatic = methodBase.IsStatic || IsConstructor;
+            bool isStatic = methodBase.IsStatic || IsConstructor;
 
-			if (IsConstructor)
-				m_IsAction = false;
-			else
-				m_IsAction = ((MethodInfo)methodBase).ReturnType == typeof(void);
+            if (IsConstructor)
+                m_IsAction = false;
+            else
+                m_IsAction = ((MethodInfo)methodBase).ReturnType == typeof(void);
 
-			ParameterInfo[] reflectionParams = methodBase.GetParameters();
-			ParameterDescriptor[] parameters;
-			
-			if (this.MethodInfo.DeclaringType.IsArray)
-			{
-				m_IsArrayCtor = true;
+            ParameterDescriptor[] parameters;
 
-				int rank = this.MethodInfo.DeclaringType.GetArrayRank();
+            if (this.MethodInfo.DeclaringType.IsArray)
+            {
+                m_IsArrayCtor = true;
 
-				parameters = new ParameterDescriptor[rank];
+                int rank = this.MethodInfo.DeclaringType.GetArrayRank();
 
-				for (int i = 0; i < rank; i++)
-					parameters[i] = new ParameterDescriptor("idx" + i.ToString(), typeof(int));
-			}
-			else
-			{
-				parameters = reflectionParams.Select(pi => new ParameterDescriptor(pi)).ToArray();
-			}
-		
-			
-			bool isExtensionMethod = (methodBase.IsStatic && parameters.Length > 0 && methodBase.GetCustomAttributes(typeof(ExtensionAttribute), false).Any());
+                parameters = new ParameterDescriptor[rank];
 
-			base.Initialize(methodBase.Name, isStatic, parameters, isExtensionMethod);
+                for (int i = 0; i < rank; i++)
+                    parameters[i] = new ParameterDescriptor("idx" + i.ToString(), typeof(int));
+            }
+            else
+            {
+                int length = reflectionParams.Length;
+                parameters = new ParameterDescriptor[length];
+                for (int i = 0; i < length; i++)
+                    parameters[i] = new ParameterDescriptor(reflectionParams[i]);
+            }
 
-			// adjust access mode
-			if (Script.GlobalOptions.Platform.IsRunningOnAOT())
-				accessMode = InteropAccessMode.Reflection;
 
-			if (accessMode == InteropAccessMode.Default)
-				accessMode = UserData.DefaultAccessMode;
+            bool isExtensionMethod = (methodBase.IsStatic && parameters.Length > 0 && methodBase.GetCustomAttributes(typeof(ExtensionAttribute), false).Length > 0);
 
-			if (accessMode == InteropAccessMode.HideMembers)
-				throw new ArgumentException("Invalid accessMode");
+            base.Initialize(methodBase.Name, isStatic, parameters, isExtensionMethod);
 
-			if (parameters.Any(p => p.Type.IsByRef))
-				accessMode = InteropAccessMode.Reflection;
+            // adjust access mode
+            if (Script.GlobalOptions.Platform.IsRunningOnAOT())
+                accessMode = InteropAccessMode.Reflection;
 
-			this.AccessMode = accessMode;
+            if (accessMode == InteropAccessMode.Default)
+                accessMode = UserData.DefaultAccessMode;
 
-			if (AccessMode == InteropAccessMode.Preoptimized)
-				((IOptimizableDescriptor)this).Optimize();
-		}
+            if (accessMode == InteropAccessMode.HideMembers)
+                throw new ArgumentException("Invalid accessMode");
 
-		/// <summary>
-		/// Tries to create a new MethodMemberDescriptor, returning 
-		/// <c>null</c> in case the method is not
-		/// visible to script code.
-		/// </summary>
-		/// <param name="methodBase">The MethodBase.</param>
-		/// <param name="accessMode">The <see cref="InteropAccessMode" /></param>
-		/// <param name="forceVisibility">if set to <c>true</c> forces visibility.</param>
-		/// <returns>
-		/// A new MethodMemberDescriptor or null.
-		/// </returns>
-		public static MethodMemberDescriptor TryCreateIfVisible(MethodBase methodBase, InteropAccessMode accessMode, bool forceVisibility = false)
+            if (AnyParametersByRef(parameters))
+                accessMode = InteropAccessMode.Reflection;
+
+            this.AccessMode = accessMode;
+
+            if (AccessMode == InteropAccessMode.Preoptimized)
+                ((IOptimizableDescriptor)this).Optimize();
+        }
+
+        private static bool AnyParametersByRef(ParameterDescriptor[] parameters)
+        {
+            for (var i = 0; i < parameters.Length; i++)
+            {
+				if (parameters[i].Type.IsByRef)
+                {
+					return true;
+                }
+            }
+			return false;
+        }
+
+        /// <summary>
+        /// Tries to create a new MethodMemberDescriptor, returning 
+        /// <c>null</c> in case the method is not
+        /// visible to script code.
+        /// </summary>
+        /// <param name="methodBase">The MethodBase.</param>
+        /// <param name="accessMode">The <see cref="InteropAccessMode" /></param>
+        /// <param name="forceVisibility">if set to <c>true</c> forces visibility.</param>
+        /// <returns>
+        /// A new MethodMemberDescriptor or null.
+        /// </returns>
+        public static MethodMemberDescriptor TryCreateIfVisible(MethodBase methodBase, InteropAccessMode accessMode, bool forceVisibility = false)
 		{
 			if (!CheckMethodIsCompatible(methodBase, false))
 				return null;
@@ -133,48 +148,66 @@ namespace MoonSharp.Interpreter.Interop
 		/// The method contains pointer parameters, or has a pointer return type
 		/// </exception>
 		public static bool CheckMethodIsCompatible(MethodBase methodBase, bool throwException)
-		{
+        {
+            var parameters = methodBase.GetParameters();
+            return CheckMethodIsCompatible(methodBase, throwException, parameters);
+        }
+
+        private static bool CheckMethodIsCompatible(MethodBase methodBase, bool throwException, ParameterInfo[] parameters)
+        {
 			if (methodBase.ContainsGenericParameters)
 			{
 				if (throwException) throw new ArgumentException("Method cannot contain unresolved generic parameters");
 				return false;
 			}
 
-			if (methodBase.GetParameters().Any(p => p.ParameterType.IsPointer))
-			{
-				if (throwException) throw new ArgumentException("Method cannot contain pointer parameters");
-				return false;
-			}
+			if (AnyParameterIsPointer(parameters))
+            {
+                if (throwException) throw new ArgumentException("Method cannot contain pointer parameters");
+                return false;
+            }
 
-			MethodInfo mi = methodBase as MethodInfo;
+            MethodInfo mi = methodBase as MethodInfo;
 
-			if (mi != null)
-			{
-				if (mi.ReturnType.IsPointer)
-				{
-					if (throwException) throw new ArgumentException("Method cannot have a pointer return type");
-					return false;
-				}
+            if (mi != null)
+            {
+                if (mi.ReturnType.IsPointer)
+                {
+                    if (throwException) throw new ArgumentException("Method cannot have a pointer return type");
+                    return false;
+                }
 
-				if (Framework.Do.IsGenericTypeDefinition(mi.ReturnType))
-				{
-					if (throwException) throw new ArgumentException("Method cannot have an unresolved generic return type");
-					return false;
-				}
-			}
+                if (Framework.Do.IsGenericTypeDefinition(mi.ReturnType))
+                {
+                    if (throwException) throw new ArgumentException("Method cannot have an unresolved generic return type");
+                    return false;
+                }
+            }
 
-			return true;
-		}
+            return true;
+        }
 
-		/// <summary>
-		/// The internal callback which actually executes the method
-		/// </summary>
-		/// <param name="script">The script.</param>
-		/// <param name="obj">The object.</param>
-		/// <param name="context">The context.</param>
-		/// <param name="args">The arguments.</param>
-		/// <returns></returns>
-		public override DynValue Execute(Script script, object obj, ScriptExecutionContext context, CallbackArguments args)
+        private static bool AnyParameterIsPointer(ParameterInfo[] parameters)
+        {
+            for (var i = 0; i < parameters.Length; i++)
+            {
+				if (parameters[i].ParameterType.IsPointer)
+                {
+					return true;
+                }
+            }
+			return false;
+        }
+
+        /// <summary>
+        /// The internal callback which actually executes the method
+        /// </summary>
+        /// <param name="script">The script.</param>
+        /// <param name="obj">The object.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="args">The arguments.</param>
+        /// <returns></returns>
+        public override DynValue Execute(Script script, object obj, ScriptExecutionContext context, CallbackArguments args)
 		{
 			this.CheckAccess(MemberDescriptorAccess.CanExecute, obj);
 

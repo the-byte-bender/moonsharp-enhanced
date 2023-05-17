@@ -608,24 +608,30 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 
 
 		[Test]
-		[ExpectedException(typeof(ScriptRuntimeException))]
 		public void Interop_InvalidPropertySetter_None()
 		{
-			Test_InvalidPropertySetter(InteropAccessMode.Reflection);
+			Assert.Throws<ScriptRuntimeException>(() =>
+			{
+				Test_InvalidPropertySetter(InteropAccessMode.Reflection);
+			});
 		}
 
 		[Test]
-		[ExpectedException(typeof(ScriptRuntimeException))]
 		public void Interop_InvalidPropertySetter_Lazy()
 		{
-			Test_InvalidPropertySetter(InteropAccessMode.LazyOptimized);
+			Assert.Throws<ScriptRuntimeException>(() =>
+			{
+				Test_InvalidPropertySetter(InteropAccessMode.LazyOptimized);
+			});
 		}
 
 		[Test]
-		[ExpectedException(typeof(ScriptRuntimeException))]
 		public void Interop_InvalidPropertySetter_Precomputed()
 		{
-			Test_InvalidPropertySetter(InteropAccessMode.Preoptimized);
+			Assert.Throws<ScriptRuntimeException>(() =>
+			{
+				Test_InvalidPropertySetter(InteropAccessMode.Preoptimized);
+			});
 		}
 
 

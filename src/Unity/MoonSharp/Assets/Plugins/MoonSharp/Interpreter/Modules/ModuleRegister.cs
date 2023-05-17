@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using MoonSharp.Interpreter.Compatibility;
@@ -73,6 +74,77 @@ namespace MoonSharp.Interpreter
 			return table;
 		}
 
+		private static Dictionary<Type, List<KeyValuePair<string, DynValue>>> modulePreregistrations = new();
+
+		private static List<KeyValuePair<string, DynValue>> PreregisterModuleType(Type t)
+        {
+			if (!modulePreregistrations.TryGetValue(t, out var result))
+			{
+				result = new List<KeyValuePair<string, DynValue>>();
+				foreach (MethodInfo mi in Framework.Do.GetMethods(t).Where(__mi => __mi.IsStatic))
+				{
+					if (mi.GetCustomAttributes(typeof(MoonSharpModuleMethodAttribute), false).ToArray().Length > 0)
+					{
+						MoonSharpModuleMethodAttribute attr = (MoonSharpModuleMethodAttribute)mi.GetCustomAttributes(typeof(MoonSharpModuleMethodAttribute), false).First();
+
+						if (!CallbackFunction.CheckCallbackSignature(mi, true))
+							throw new ArgumentException(string.Format("Method {0} does not have the right signature.", mi.Name));
+
+#if NETFX_CORE
+						Delegate deleg = mi.CreateDelegate(typeof(Func<ScriptExecutionContext, CallbackArguments, DynValue>));
+#else
+						Delegate deleg = Delegate.CreateDelegate(typeof(Func<ScriptExecutionContext, CallbackArguments, DynValue>), mi);
+#endif
+
+						Func<ScriptExecutionContext, CallbackArguments, DynValue> func =
+							(Func<ScriptExecutionContext, CallbackArguments, DynValue>)deleg;
+
+
+						string name = (!string.IsNullOrEmpty(attr.Name)) ? attr.Name : mi.Name;
+
+						result.Add(new KeyValuePair<string, DynValue>(name, DynValue.NewCallback(func, name)));
+					}
+				}
+
+				//foreach (FieldInfo fi in Framework.Do.GetFields(t).Where(_mi => _mi.IsStatic && _mi.GetCustomAttributes(typeof(MoonSharpModuleMethodAttribute), false).ToArray().Length > 0))
+				//{
+				//	MoonSharpModuleMethodAttribute attr = (MoonSharpModuleMethodAttribute)fi.GetCustomAttributes(typeof(MoonSharpModuleMethodAttribute), false).First();
+				//	string name = (!string.IsNullOrEmpty(attr.Name)) ? attr.Name : fi.Name;
+
+				//	RegisterScriptField(fi, null, table, t, name);
+				//}
+
+				foreach (FieldInfo fi in Framework.Do.GetFields(t).Where(_mi => _mi.IsStatic && _mi.GetCustomAttributes(typeof(MoonSharpModuleConstantAttribute), false).ToArray().Length > 0))
+				{
+					MoonSharpModuleConstantAttribute attr = (MoonSharpModuleConstantAttribute)fi.GetCustomAttributes(typeof(MoonSharpModuleConstantAttribute), false).First();
+					string name = (!string.IsNullOrEmpty(attr.Name)) ? attr.Name : fi.Name;
+
+					PreregisterScriptFieldAsConst(fi, null, result, t, name);
+				}
+
+				modulePreregistrations.Add(t, result);
+			}
+
+			return result;
+		}
+
+		private static void PreregisterScriptFieldAsConst(FieldInfo fi, object o, List<KeyValuePair<string, DynValue>> list, Type t, string name)
+		{
+			if (fi.FieldType == typeof(string))
+			{
+				string val = fi.GetValue(o) as string;
+				list.Add(new KeyValuePair<string, DynValue>(name, DynValue.NewString(val)));
+			}
+			else if (fi.FieldType == typeof(double))
+			{
+				double val = (double)fi.GetValue(o);
+				list.Add(new KeyValuePair<string, DynValue>(name, DynValue.NewNumber(val)));
+			}
+			else
+			{
+				throw new ArgumentException(string.Format("Field {0} does not have the right type - it must be string or double.", name));
+			}
+		}
 
 
 		/// <summary>
@@ -86,51 +158,59 @@ namespace MoonSharp.Interpreter
 		{
 			Table table = CreateModuleNamespace(gtable, t);
 
+			var prereg = PreregisterModuleType(t);
+
+			foreach(var member in prereg)
+            {
+				table.Set(member.Key, member.Value);
+            }
+
 			foreach (MethodInfo mi in Framework.Do.GetMethods(t).Where(__mi => __mi.IsStatic))
 			{
-				if (mi.GetCustomAttributes(typeof(MoonSharpModuleMethodAttribute), false).ToArray().Length > 0)
-				{
-					MoonSharpModuleMethodAttribute attr = (MoonSharpModuleMethodAttribute)mi.GetCustomAttributes(typeof(MoonSharpModuleMethodAttribute), false).First();
+//				if (mi.GetCustomAttributes(typeof(MoonSharpModuleMethodAttribute), false).ToArray().Length > 0)
+//				{
+//					MoonSharpModuleMethodAttribute attr = (MoonSharpModuleMethodAttribute)mi.GetCustomAttributes(typeof(MoonSharpModuleMethodAttribute), false).First();
 
-					if (!CallbackFunction.CheckCallbackSignature(mi, true))
-							throw new ArgumentException(string.Format("Method {0} does not have the right signature.", mi.Name));
+//					if (!CallbackFunction.CheckCallbackSignature(mi, true))
+//							throw new ArgumentException(string.Format("Method {0} does not have the right signature.", mi.Name));
 
-#if NETFX_CORE
-					Delegate deleg = mi.CreateDelegate(typeof(Func<ScriptExecutionContext, CallbackArguments, DynValue>));
-#else
-					Delegate deleg = Delegate.CreateDelegate(typeof(Func<ScriptExecutionContext, CallbackArguments, DynValue>), mi);
-#endif
+//#if NETFX_CORE
+//					Delegate deleg = mi.CreateDelegate(typeof(Func<ScriptExecutionContext, CallbackArguments, DynValue>));
+//#else
+//					Delegate deleg = Delegate.CreateDelegate(typeof(Func<ScriptExecutionContext, CallbackArguments, DynValue>), mi);
+//#endif
 
-					Func<ScriptExecutionContext, CallbackArguments, DynValue> func =
-						(Func<ScriptExecutionContext, CallbackArguments, DynValue>)deleg;
+//					Func<ScriptExecutionContext, CallbackArguments, DynValue> func =
+//						(Func<ScriptExecutionContext, CallbackArguments, DynValue>)deleg;
 						
 
-					string name = (!string.IsNullOrEmpty(attr.Name)) ? attr.Name : mi.Name;
+//					string name = (!string.IsNullOrEmpty(attr.Name)) ? attr.Name : mi.Name;
 
-					table.Set(name, DynValue.NewCallback(func, name));
-				}
-				else if (mi.Name == "MoonSharpInit")
+//					table.Set(name, DynValue.NewCallback(func, name));
+//				}
+//				else
+				if (mi.Name == "MoonSharpInit")
 				{
 					object[] args = new object[2] { gtable, table };
 					mi.Invoke(null, args);
 				}
 			}
 
-			foreach (FieldInfo fi in Framework.Do.GetFields(t).Where(_mi => _mi.IsStatic && _mi.GetCustomAttributes(typeof(MoonSharpModuleMethodAttribute), false).ToArray().Length > 0))
-			{
-				MoonSharpModuleMethodAttribute attr = (MoonSharpModuleMethodAttribute)fi.GetCustomAttributes(typeof(MoonSharpModuleMethodAttribute), false).First();
-				string name = (!string.IsNullOrEmpty(attr.Name)) ? attr.Name : fi.Name;
+			//foreach (FieldInfo fi in Framework.Do.GetFields(t).Where(_mi => _mi.IsStatic && _mi.GetCustomAttributes(typeof(MoonSharpModuleMethodAttribute), false).ToArray().Length > 0))
+			//{
+			//	MoonSharpModuleMethodAttribute attr = (MoonSharpModuleMethodAttribute)fi.GetCustomAttributes(typeof(MoonSharpModuleMethodAttribute), false).First();
+			//	string name = (!string.IsNullOrEmpty(attr.Name)) ? attr.Name : fi.Name;
 
-				RegisterScriptField(fi, null, table, t, name);
-			}
+			//	RegisterScriptField(fi, null, table, t, name);
+			//}
 
-			foreach (FieldInfo fi in Framework.Do.GetFields(t).Where(_mi => _mi.IsStatic && _mi.GetCustomAttributes(typeof(MoonSharpModuleConstantAttribute), false).ToArray().Length > 0))
-			{
-				MoonSharpModuleConstantAttribute attr = (MoonSharpModuleConstantAttribute)fi.GetCustomAttributes(typeof(MoonSharpModuleConstantAttribute), false).First();
-				string name = (!string.IsNullOrEmpty(attr.Name)) ? attr.Name : fi.Name;
+			//foreach (FieldInfo fi in Framework.Do.GetFields(t).Where(_mi => _mi.IsStatic && _mi.GetCustomAttributes(typeof(MoonSharpModuleConstantAttribute), false).ToArray().Length > 0))
+			//{
+			//	MoonSharpModuleConstantAttribute attr = (MoonSharpModuleConstantAttribute)fi.GetCustomAttributes(typeof(MoonSharpModuleConstantAttribute), false).First();
+			//	string name = (!string.IsNullOrEmpty(attr.Name)) ? attr.Name : fi.Name;
 
-				RegisterScriptFieldAsConst(fi, null, table, t, name);
-			}
+			//	RegisterScriptFieldAsConst(fi, null, table, t, name);
+			//}
 
 			return gtable;
 		}
@@ -153,19 +233,20 @@ namespace MoonSharp.Interpreter
 			}
 		}
 
-		private static void RegisterScriptField(FieldInfo fi, object o, Table table, Type t, string name)
-		{
-			if (fi.FieldType != typeof(string))
-			{
-				throw new ArgumentException(string.Format("Field {0} does not have the right type - it must be string.", name));
-			}
+		//private static void RegisterScriptField(FieldInfo fi, object o, Table table, Type t, string name)
+		//{
+		//	UnityEngine.Debug.LogWarning("DRAT!");
+		//	if (fi.FieldType != typeof(string))
+		//	{
+		//		throw new ArgumentException(string.Format("Field {0} does not have the right type - it must be string.", name));
+		//	}
 
-			string val = fi.GetValue(o) as string;
+		//	string val = fi.GetValue(o) as string;
 
-			DynValue fn = table.OwnerScript.LoadFunction(val, table, name);
+		//	DynValue fn = table.OwnerScript.LoadFunction(val, table, name);
 
-			table.Set(name, fn);
-		}
+		//	table.Set(name, fn);
+		//}
 
 
 		private static Table CreateModuleNamespace(Table gtable, Type t)

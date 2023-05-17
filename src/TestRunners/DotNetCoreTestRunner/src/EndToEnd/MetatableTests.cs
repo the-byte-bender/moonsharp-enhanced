@@ -259,7 +259,7 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 				end
 
 
-				return myobj.extended() * myobj.getSomething();
+				return myobj.extended() * myobj.GetSomething();
 				";
 
 			Script script = new Script();

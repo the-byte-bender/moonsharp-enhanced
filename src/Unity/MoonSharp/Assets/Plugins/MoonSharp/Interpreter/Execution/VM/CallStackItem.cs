@@ -4,7 +4,6 @@ namespace MoonSharp.Interpreter.Execution.VM
 {
 	internal class CallStackItem
 	{
-		public int Debug_EntryPoint;
 		public SymbolRef[] Debug_Symbols;
 
 		public SourceRef CallingSourceRef;
@@ -14,11 +13,12 @@ namespace MoonSharp.Interpreter.Execution.VM
 		public CallbackFunction ErrorHandler;
 		public DynValue ErrorHandlerBeforeUnwind;
 
-		public int BasePointer;
-		public int ReturnAddress;
-		public DynValue[] LocalScope;
+		public DynValueAccessor[] LocalScope;
 		public ClosureContext ClosureScope;
 
+		public int BasePointer;
+		public int ReturnAddress;
+		public int Debug_EntryPoint;
 		public CallStackItemFlags Flags;
 	}
 

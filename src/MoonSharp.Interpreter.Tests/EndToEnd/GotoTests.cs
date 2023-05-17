@@ -57,18 +57,18 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 		}
 
 		[Test]
-		[ExpectedException(typeof(SyntaxErrorException))]
 		public void Goto_UndefinedLabel()
 		{
 			string script = @"
 				goto there
 				";
 
-			Script.RunString(script);
+			Assert.Throws<SyntaxErrorException>(() =>
+			Script.RunString(script));
+			
 		}
 
 		[Test]
-		[ExpectedException(typeof(SyntaxErrorException))]
 		public void Goto_DoubleDefinedLabel()
 		{
 			string script = @"
@@ -76,7 +76,8 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 				::label::
 				";
 
-			Script.RunString(script);
+			Assert.Throws<SyntaxErrorException>(() =>
+			Script.RunString(script));
 		}
 
 		[Test]
@@ -112,7 +113,6 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 		}
 
 		[Test]
-		[ExpectedException(typeof(SyntaxErrorException))]
 		public void Goto_UndefinedLabel_2()
 		{
 			string script = @"
@@ -124,14 +124,16 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 				end
 				";
 
-			DynValue res = Script.RunString(script);
+			Assert.Throws<SyntaxErrorException>(() =>
+			{
+				DynValue res = Script.RunString(script);
 
-			Assert.AreEqual(DataType.Number, res.Type);
-			Assert.AreEqual(3, res.Number);
+				Assert.AreEqual(DataType.Number, res.Type);
+				Assert.AreEqual(3, res.Number);
+			});
 		}
 
 		[Test]
-		[ExpectedException(typeof(SyntaxErrorException))]
 		public void Goto_VarInScope()
 		{
 			string script = @"
@@ -140,10 +142,13 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 				::f::
 				";
 
-			DynValue res = Script.RunString(script);
+			Assert.Throws<SyntaxErrorException>(() =>
+			{
+				DynValue res = Script.RunString(script);
 
-			Assert.AreEqual(DataType.Number, res.Type);
-			Assert.AreEqual(3, res.Number);
+				Assert.AreEqual(DataType.Number, res.Type);
+				Assert.AreEqual(3, res.Number);
+			});
 		}
 
 

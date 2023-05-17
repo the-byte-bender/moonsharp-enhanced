@@ -184,14 +184,16 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 		}
 
 		[Test]
-		[ExpectedException(typeof(SyntaxErrorException))]
 		public void InvalidEscape()
 		{
 			string script = @"    
 				x = 'ciao\k{41}';
 				return x;";
 
-			DynValue res = Script.RunString(script);
+			Assert.Throws<SyntaxErrorException>(() =>
+			{
+				DynValue res = Script.RunString(script);
+			});
 		}
 
 		[Test]
@@ -226,7 +228,7 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 			catch (SyntaxErrorException ex)
 			{
 				caught = true;
-				Assert.IsNotNullOrEmpty(ex.Message);
+				Assert.That(ex.Message, Is.Not.Null.Or.Empty);
 			}
 
 			Assert.IsTrue(caught);
@@ -1396,7 +1398,6 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 		}
 
 		[Test]
-		[ExpectedException(typeof(SyntaxErrorException))]
 		public void VarArgsInNoVarArgsReturnsError()
 		{
 			string script = @"
@@ -1414,7 +1415,10 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 					return x(1,2,3,4);
 								";
 
-			DynValue res = Script.RunString(script);
+			Assert.Throws<SyntaxErrorException>(() =>
+			{
+				DynValue res = Script.RunString(script);
+			});
 		}
 
 		[Test]

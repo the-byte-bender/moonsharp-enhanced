@@ -13,8 +13,8 @@ namespace MoonSharp.Interpreter
 		// Fields are internal - direct access by the executor was a 10% improvement at profiling here!
 		internal SymbolRefType i_Type;
 		internal SymbolRef i_Env;
-		internal int i_Index;
 		internal string i_Name;
+		internal int i_Index;
 
 		/// <summary>
 		/// Gets the type of this symbol reference

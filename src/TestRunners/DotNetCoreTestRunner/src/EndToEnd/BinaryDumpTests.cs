@@ -136,7 +136,6 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 
 
 		[Test]
-		[ExpectedException(typeof(ArgumentException))]
 		public void BinDump_FactorialDumpFuncUpvalue()
 		{
 			string script = @"
@@ -148,13 +147,16 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 				end
 			";
 
-			DynValue fact = Script_LoadFunc(script, "fact");
-			fact.Function.OwnerScript.Globals.Set("fact", fact);
-			fact.Function.OwnerScript.Globals.Set("x", DynValue.NewNumber(0));
-			DynValue res = fact.Function.Call(5);
+			Assert.Throws<ArgumentException>(() =>
+			{
+				DynValue fact = Script_LoadFunc(script, "fact");
+				fact.Function.OwnerScript.Globals.Set("fact", fact);
+				fact.Function.OwnerScript.Globals.Set("x", DynValue.NewNumber(0));
+				DynValue res = fact.Function.Call(5);
 
-			Assert.AreEqual(DataType.Number, res.Type);
-			Assert.AreEqual(120, res.Number);
+				Assert.AreEqual(DataType.Number, res.Type);
+				Assert.AreEqual(120, res.Number);
+			});
 		}
 
 

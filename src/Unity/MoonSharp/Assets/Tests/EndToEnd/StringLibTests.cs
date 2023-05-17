@@ -217,13 +217,15 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 		}
 
 		[Test]
-		[ExpectedException(typeof(ScriptRuntimeException))]
 		public void String_GSub_2()
 		{
 			string script = @"
 				string.gsub('hello world', '%w+', '%e')
 			";
-			DynValue res = Script.RunString(script);
+			Assert.Throws<ScriptRuntimeException>(() =>
+			{
+				DynValue res = Script.RunString(script);
+			});
 		}
 
 		[Test]

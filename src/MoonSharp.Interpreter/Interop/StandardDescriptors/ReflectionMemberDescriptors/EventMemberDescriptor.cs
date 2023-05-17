@@ -6,6 +6,7 @@ using MoonSharp.Interpreter.Compatibility;
 using MoonSharp.Interpreter.DataStructs;
 using MoonSharp.Interpreter.Interop.BasicDescriptors;
 using MoonSharp.Interpreter.Interop.StandardDescriptors;
+using ReferenceEqualityComparer = MoonSharp.Interpreter.DataStructs.ReferenceEqualityComparer;
 
 namespace MoonSharp.Interpreter.Interop
 {
@@ -274,14 +275,15 @@ namespace MoonSharp.Interpreter.Interop
 			object o09 = null, object o10 = null, object o11 = null, object o12 = null,
 			object o13 = null, object o14 = null, object o15 = null, object o16 = null)
 		{
-			Closure[] closures = null;
+			IReadOnlyList<Closure> closures = null;
 			lock (m_Lock)
 			{
 				closures = m_Callbacks.Find(sender).ToArray();
 			}
 
-			foreach (Closure c in closures)
+			for (var i = 0; i < closures.Count; i++)
 			{
+				Closure c = closures[i];
 				c.Call(o01, o02, o03, o04, o05, o06, o07, o08, o09, o10, o11, o12, o13, o14, o15, o16);
 			}
 		}

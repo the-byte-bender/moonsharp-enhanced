@@ -12,7 +12,7 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 	/// Selected tests extracted from Lua test suite
 	/// </summary>
 	[TestFixture]
-	class LuaTestSuiteExtract
+	public class LuaTestSuiteExtract
 	{
 		void RunTest(string script)
 		{

@@ -7,7 +7,7 @@ using NUnit.Framework;
 namespace MoonSharp.Interpreter.Tests.EndToEnd
 {
 	[TestFixture]
-	class CoroutineTests
+	public class CoroutineTests
 	{
 		[Test]
 		public void Coroutine_Basic()

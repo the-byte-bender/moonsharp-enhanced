@@ -52,6 +52,7 @@ namespace MoonSharp.Interpreter.Execution.VM
 		}
 
 
+		//TODO: Can this be removed?
 		public void AssignGenericSymbol(SymbolRef symref, DynValue value)
 		{
 			switch (symref.i_Type)
@@ -63,20 +64,16 @@ namespace MoonSharp.Interpreter.Execution.VM
 					{
 						var stackframe = GetTopNonClrFunction();
 
-						DynValue v = stackframe.LocalScope[symref.i_Index];
-						if (v == null)
-							stackframe.LocalScope[symref.i_Index] = v = DynValue.NewNil();
-
-						v.Assign(value);
+						stackframe.LocalScope[symref.i_Index] = new DynValueAccessor(value);
 					}
 					break;
 				case SymbolRefType.Upvalue:
 					{
 						var stackframe = GetTopNonClrFunction();
 
-						DynValue v = stackframe.ClosureScope[symref.i_Index];
+						DynValueAccessor v = stackframe.ClosureScope[symref.i_Index];
 						if (v == null)
-							stackframe.ClosureScope[symref.i_Index] = v = DynValue.NewNil();
+							stackframe.ClosureScope[symref.i_Index] = v = DynValueAccessor.NewNil();
 
 						v.Assign(value);
 					}

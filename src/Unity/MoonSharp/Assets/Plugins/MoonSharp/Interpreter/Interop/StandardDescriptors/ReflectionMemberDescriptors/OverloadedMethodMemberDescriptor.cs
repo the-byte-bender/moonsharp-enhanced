@@ -88,9 +88,9 @@ namespace MoonSharp.Interpreter.Interop
 		/// </summary>
 		/// <param name="version">The version.</param>
 		/// <param name="extMethods">The ext methods.</param>
-		internal void SetExtensionMethodsSnapshot(int version, List<IOverloadableMemberDescriptor> extMethods)
+		internal void SetExtensionMethodsSnapshot(int version, IReadOnlyList<IOverloadableMemberDescriptor> extMethods)
 		{
-			m_ExtOverloads = extMethods;
+			m_ExtOverloads = extMethods.ToList();
 			m_ExtensionMethodVersion = version;
 		}
 
@@ -195,7 +195,7 @@ namespace MoonSharp.Interpreter.Interop
 				if (!extMethodCacheNotExpired)
 				{
 					m_ExtensionMethodVersion = UserData.GetExtensionMethodsChangeVersion();
-					m_ExtOverloads = UserData.GetExtensionMethodsByNameAndType(this.Name, this.DeclaringType);
+					m_ExtOverloads = UserData.GetExtensionMethodsByNameAndType(this.Name, this.DeclaringType).ToList();
 				}
 
 				for (int i = 0; i < m_ExtOverloads.Count; i++)

@@ -30,13 +30,13 @@ namespace MoonSharp.Interpreter
 			ClrCallbackDead
 		}
 
+		private CallbackFunction m_ClrCallback;
+		private Processor m_Processor;
 		/// <summary>
 		/// Gets the type of coroutine
 		/// </summary>
-		public  CoroutineType Type { get; private set; }
+		public CoroutineType Type { get; private set; }
 
-		private CallbackFunction m_ClrCallback;
-		private Processor m_Processor;
 
 
 		internal Coroutine(CallbackFunction function)

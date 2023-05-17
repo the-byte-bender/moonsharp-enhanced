@@ -50,8 +50,6 @@ namespace MoonSharp.Debugger
 			lvTableData.Visible = false;
 			txtString.Visible = false;
 
-			AddProperty("Ref ID#", V.ReferenceID.ToString("X8"));
-			AddProperty("Read Only", V.ReadOnly);
 			AddProperty("VM Type", V.Type);
 
 			switch (V.Type)

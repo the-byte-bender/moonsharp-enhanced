@@ -50,7 +50,7 @@ namespace MoonSharp.Interpreter
 				DebugInput = s => { return Script.GlobalOptions.Platform.DefaultInput(s); },
 				CheckThreadAccess = true,
 				ScriptLoader = PlatformAutoDetector.GetDefaultScriptLoader(),
-				TailCallOptimizationThreshold = 65536
+				TailCallOptimizationThreshold = 2048
 			};
 		}
 
@@ -66,17 +66,24 @@ namespace MoonSharp.Interpreter
 		/// Initializes a new instance of the <see cref="Script"/> class.
 		/// </summary>
 		/// <param name="coreModules">The core modules to be pre-registered in the default global table.</param>
-		public Script(CoreModules coreModules)
+		public Script(CoreModules coreModules, int callStackSize, int valueStackSize)
 		{
 			Options = new ScriptOptions(DefaultOptions);
 			PerformanceStats = new PerformanceStatistics();
 			Registry = new Table(this);
 
 			m_ByteCode = new ByteCode(this);
-			m_MainProcessor = new Processor(this, m_GlobalTable, m_ByteCode);
+			m_MainProcessor = new Processor(this, m_GlobalTable, m_ByteCode, callStackSize, valueStackSize);
 			m_GlobalTable = new Table(this).RegisterCoreModules(coreModules);
 		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="Script"/> class.
+		/// </summary>
+		/// <param name="coreModules">The core modules to be pre-registered in the default global table.</param>
+		public Script(CoreModules coreModules) : this(coreModules, 4096, 4096)
+		{
+		}
 
 		/// <summary>
 		/// Gets or sets the script loader which will be used as the value of the
@@ -406,11 +413,11 @@ namespace MoonSharp.Interpreter
 				{
 					c = new Closure(this, address,
 						new SymbolRef[] { SymbolRef.Upvalue(WellKnownSymbols.ENV, 0) },
-						new DynValue[] { meta.Value });
+						new DynValueAccessor[] { new DynValueAccessor(() => meta.Value, i => meta.Value = i) });
 				}
 				else
 				{
-					c = new Closure(this, address, new SymbolRef[0], new DynValue[0]);
+					c = new Closure(this, address, new SymbolRef[0], new DynValueAccessor[0]);
 				}
 			}
 			else
@@ -419,8 +426,9 @@ namespace MoonSharp.Interpreter
 					new SymbolRef() { i_Env = null, i_Index= 0, i_Name = WellKnownSymbols.ENV, i_Type =  SymbolRefType.DefaultEnv },
 				};
 
-				var vals = new DynValue[] {
-					DynValue.NewTable(envTable)
+				var valTable = DynValue.NewTable(envTable);
+				var vals = new DynValueAccessor[] {
+					new DynValueAccessor(() => valTable, i => { valTable = i; })
 				};
 
 				c = new Closure(this, address, syms, vals);

@@ -63,11 +63,11 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 			MyClass x = Test(@"
 				{
 				class = 'oohoh',
-				myString = 'ciao',
+				MyString = 'ciao',
 				number = 3,
-				some_table = {},
-				nativeValue = function() end,
-				subObj = { number = 15, myString = 'hi' },
+				SomeTable = {},
+				NativeValue = function() end,
+				SubObj = { number = 15, MyString = 'hi' },
 				}");
 
 			Assert.AreEqual(x.MyNumber, 3);
@@ -81,10 +81,11 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 
 
 		[Test]
-		[ExpectedException(typeof(ScriptRuntimeException))]
 		public void ConfigProp_ThrowsOnInvalid()
 		{
-			MyClass x = Test(@"
+			Assert.Throws<ScriptRuntimeException>(() =>
+			{
+				MyClass x = Test(@"
 				{
 				class = 'oohoh',
 				myString = 'ciao',
@@ -94,11 +95,11 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 				nativeValue = function() end,
 				}");
 
-			Assert.AreEqual(x.MyNumber, 3);
-			Assert.AreEqual(x.MyString, "ciao");
-			Assert.AreEqual(x.NativeValue.Type, DataType.Function);
-			Assert.IsNotNull(x.SomeTable);
-
+				Assert.AreEqual(x.MyNumber, 3);
+				Assert.AreEqual(x.MyString, "ciao");
+				Assert.AreEqual(x.NativeValue.Type, DataType.Function);
+				Assert.IsNotNull(x.SomeTable);
+			});
 		}
 
 	}

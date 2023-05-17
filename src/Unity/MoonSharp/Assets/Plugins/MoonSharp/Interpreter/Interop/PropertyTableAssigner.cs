@@ -182,9 +182,6 @@ namespace MoonSharp.Interpreter.Interop
 		private void AssignProperty(object obj, string name, DynValue value)
 		{
 			if (TryAssignProperty(obj, name, value)) return;
-			if (TryAssignProperty(obj, DescriptorHelpers.UpperFirstLetter(name), value)) return;
-			if (TryAssignProperty(obj, DescriptorHelpers.Camelify(name), value)) return;
-			if (TryAssignProperty(obj, DescriptorHelpers.UpperFirstLetter(DescriptorHelpers.Camelify(name)), value)) return;
 
 			throw new ScriptRuntimeException("Invalid property {0}", name);
 		}

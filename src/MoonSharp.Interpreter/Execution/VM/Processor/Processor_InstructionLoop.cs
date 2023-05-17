@@ -198,10 +198,10 @@ namespace MoonSharp.Interpreter.Execution.VM
 						case OpCode.Local:
 							var scope = m_ExecutionStack.Peek().LocalScope;
 							var index = i.Symbol.i_Index;
-							m_ValueStack.Push(scope[index].AsReadOnly());
+							m_ValueStack.Push(scope[index]);
 							break;
 						case OpCode.Upvalue:
-							m_ValueStack.Push(m_ExecutionStack.Peek().ClosureScope[i.Symbol.i_Index].AsReadOnly());
+							m_ValueStack.Push(m_ExecutionStack.Peek().ClosureScope[i.Symbol.i_Index]);
 							break;
 						case OpCode.StoreUpv:
 							ExecStoreUpv(i);
@@ -349,17 +349,15 @@ namespace MoonSharp.Interpreter.Execution.VM
 			return decoratedMessage;
 		}
 
-
-
 		private void AssignLocal(SymbolRef symref, DynValue value)
 		{
 			var stackframe = m_ExecutionStack.Peek();
 
-			DynValue v = stackframe.LocalScope[symref.i_Index];
-			if (v == null)
-				stackframe.LocalScope[symref.i_Index] = v = DynValue.NewNil();
+            DynValueAccessor v = stackframe.LocalScope[symref.i_Index];
+            if (v == null)
+            	stackframe.LocalScope[symref.i_Index] = v = DynValueAccessor.NewNil();
 
-			v.Assign(value);
+            v.Assign(value);
 		}
 
 		private void ExecStoreLcl(Instruction i)
@@ -377,9 +375,9 @@ namespace MoonSharp.Interpreter.Execution.VM
 
 			var stackframe = m_ExecutionStack.Peek();
 
-			DynValue v = stackframe.ClosureScope[symref.i_Index];
+			DynValueAccessor v = stackframe.ClosureScope[symref.i_Index];
 			if (v == null)
-				stackframe.ClosureScope[symref.i_Index] = v = DynValue.NewNil();
+				stackframe.ClosureScope[symref.i_Index] = v = DynValueAccessor.NewNil();
 
 			v.Assign(value);
 		}
@@ -419,10 +417,14 @@ namespace MoonSharp.Interpreter.Execution.VM
 			m_ValueStack.Push(DynValue.NewClosure(c));
 		}
 
-		private DynValue GetUpvalueSymbol(SymbolRef s)
+		private DynValueAccessor GetUpvalueSymbol(SymbolRef s)
 		{
 			if (s.Type == SymbolRefType.Local)
-				return m_ExecutionStack.Peek().LocalScope[s.i_Index];
+			{
+				var stackItem = m_ExecutionStack.Peek();
+				var localScope = stackItem.LocalScope;
+				return localScope[s.i_Index];
+			}
 			else if (s.Type == SymbolRefType.Upvalue)
 				return m_ExecutionStack.Peek().ClosureScope[s.i_Index];
 			else
@@ -506,7 +508,6 @@ namespace MoonSharp.Interpreter.Execution.VM
 					var = v.Tuple.Length >= 3 ? v.Tuple[2] : DynValue.Nil;
 
 					m_ValueStack.Push(DynValue.NewTuple(f, s, var));
-					return;
 				}
 				else if (f.Type == DataType.Table)
 				{
@@ -515,7 +516,6 @@ namespace MoonSharp.Interpreter.Execution.VM
 					if (callmeta == null || callmeta.IsNil())
 					{
 						m_ValueStack.Push(EnumerableWrapper.ConvertTable(f.Table));
-						return;
 					}
 				}
 			}
@@ -545,17 +545,19 @@ namespace MoonSharp.Interpreter.Execution.VM
 			DynValue top = m_ValueStack.Peek(0);
 			DynValue btm = m_ValueStack.Peek(i.NumVal);
 
-			if (top.ReadOnly)
-			{
-				m_ValueStack.Pop();
+			//if (top.ReadOnly)
+			//{
+			//	m_ValueStack.Pop();
 
-				if (top.ReadOnly)
-					top = top.CloneAsWritable();
+			//	if (top.ReadOnly)
+			//		top = top.CloneAsWritable();
 
-				m_ValueStack.Push(top);
-			}
+			//	m_ValueStack.Push(top);
+			//}
 
-			top.AssignNumber(top.Number + btm.Number);
+			//top.AssignNumber(top.Number + btm.Number);
+			m_ValueStack.Pop();
+			m_ValueStack.Push(DynValue.NewNumber(top.Number + btm.Number));
 		}
 
 
@@ -584,7 +586,7 @@ namespace MoonSharp.Interpreter.Execution.VM
 			CallStackItem cur = m_ExecutionStack.Peek();
 
 			cur.Debug_Symbols = i.SymbolList;
-			cur.LocalScope = new DynValue[i.NumVal];
+			cur.LocalScope = new DynValueAccessor[i.NumVal];
 
 			ClearBlockData(i);
 		}
@@ -651,14 +653,14 @@ namespace MoonSharp.Interpreter.Execution.VM
 
 					for (int ii = 0; ii < len; ii++, i++)
 					{
-						varargs[ii] = argsList[i].ToScalar().CloneAsWritable();
+						varargs[ii] = argsList[i].ToScalar();
 					}
 
 					this.AssignLocal(I.SymbolList[I.SymbolList.Length - 1], DynValue.NewTuple(Internal_AdjustTuple(varargs)));
 				}
 				else
 				{
-					this.AssignLocal(I.SymbolList[i], argsList[i].ToScalar().CloneAsWritable());
+					this.AssignLocal(I.SymbolList[i], argsList[i].ToScalar());
 				}
 			}
 		}
@@ -667,7 +669,7 @@ namespace MoonSharp.Interpreter.Execution.VM
 
 
 		private int Internal_ExecCall(int argsCount, int instructionPtr, CallbackFunction handler = null,
-			CallbackFunction continuation = null, bool thisCall = false, string debugText = null, DynValue unwindHandler = null)
+			CallbackFunction continuation = null, bool thisCall = false, string debugText = null, DynValue unwindHandler = default)
 		{
 			DynValue fn = m_ValueStack.Peek(argsCount);
 			CallStackItemFlags flags = (thisCall ? CallStackItemFlags.MethodCall : CallStackItemFlags.None);
@@ -703,12 +705,9 @@ namespace MoonSharp.Interpreter.Execution.VM
 			{
 				//IList<DynValue> args = new Slice<DynValue>(m_ValueStack, m_ValueStack.Count - argsCount, argsCount, false);
 				IList<DynValue> args = CreateArgsListForFunctionCall(argsCount, 0);
-		                // we expand tuples before callbacks
+				// we expand tuples before callbacks
 				// args = DynValue.ExpandArgumentsToList(args);
-
-				// instructionPtr - 1: instructionPtr already points to the next instruction at this moment
-				// but we need the current instruction here
-                		SourceRef sref = GetCurrentSourceRef(instructionPtr - 1);
+				SourceRef sref = GetCurrentSourceRef(instructionPtr);
 
 				m_ExecutionStack.Push(new CallStackItem()
 				{
@@ -738,7 +737,7 @@ namespace MoonSharp.Interpreter.Execution.VM
 					BasePointer = m_ValueStack.Count,
 					ReturnAddress = instructionPtr,
 					Debug_EntryPoint = fn.Function.EntryPointByteCodeLocation,
-					CallingSourceRef = GetCurrentSourceRef(instructionPtr - 1), // See right above in GetCurrentSourceRef(instructionPtr - 1)
+					CallingSourceRef = GetCurrentSourceRef(instructionPtr),
 					ClosureScope = fn.Function.ClosureContext,
 					ErrorHandler = handler,
 					Continuation = continuation,
@@ -1312,7 +1311,7 @@ namespace MoonSharp.Interpreter.Execution.VM
 
 						if (!v.IsNil())
 						{
-							m_ValueStack.Push(v.AsReadOnly());
+							m_ValueStack.Push(v);
 							return instructionPtr;
 						}
 					}
@@ -1338,7 +1337,7 @@ namespace MoonSharp.Interpreter.Execution.VM
 						throw ScriptRuntimeException.UserDataMissingField(ud.Descriptor.Name, idx.String);
 					}
 
-					m_ValueStack.Push(v.AsReadOnly());
+					m_ValueStack.Push(v);
 					return instructionPtr;
 				}
 				else

@@ -125,28 +125,8 @@ namespace MoonSharp.Interpreter.CoreLib
 
 			return DynValue.NewTuple(
 				DynValue.NewString(closure.Symbols[index]),
-				closure[index]);
+				closure[index].Get());
 		}
-
-
-		[MoonSharpModuleMethod]
-		public static DynValue upvalueid(ScriptExecutionContext executionContext, CallbackArguments args)
-		{
-			var index = (int)args.AsType(1, "getupvalue", DataType.Number, false).Number - 1;
-
-			if (args[0].Type == DataType.ClrFunction)
-				return DynValue.Nil;
-
-			var fn = args.AsType(0, "getupvalue", DataType.Function, false).Function;
-
-			var closure = fn.ClosureContext;
-
-			if (index < 0 || index >= closure.Count)
-				return DynValue.Nil;
-
-			return DynValue.NewNumber(closure[index].ReferenceID);
-		}
-
 
 		[MoonSharpModuleMethod]
 		public static DynValue setupvalue(ScriptExecutionContext executionContext, CallbackArguments args)
@@ -163,6 +143,7 @@ namespace MoonSharp.Interpreter.CoreLib
 			if (index < 0 || index >= closure.Count)
 				return DynValue.Nil;
 
+			//closure[index].Assign(args[2]);
 			closure[index].Assign(args[2]);
 
 			return DynValue.NewString(closure.Symbols[index]);

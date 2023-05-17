@@ -355,7 +355,7 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 			UserData.UnregisterType<SomeClass>();
 
 			string script = @"    
-			return myobj.format('{0}.{1}@{2}:{3}', 1, 2, 'ciao', true);";
+			return myobj.Format('{0}.{1}@{2}:{3}', 1, 2, 'ciao', true);";
 
 			Script S = new Script();
 
@@ -370,58 +370,6 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 
 			Assert.AreEqual(DataType.String, res.Type);
 			Assert.AreEqual("1.2@ciao:True", res.String);
-		}
-
-
-		public void Test_ConcatMethodStaticComplexCustomConv(InteropAccessMode opt)
-		{
-			try
-			{
-				UserData.UnregisterType<SomeClass>();
-
-				string script = @"    
-				strlist = { 'ciao', 'hello', 'aloha' };
-				intlist = {  };
-				dictry = { ciao = 39, hello = 78, aloha = 128 };
-				
-				x = static.SetComplexTypes(strlist, intlist, dictry, strlist, intlist);
-
-				return x;";
-
-				Script S = new Script();
-
-				SomeClass obj = new SomeClass();
-
-				UserData.UnregisterType<SomeClass>();
-				UserData.RegisterType<SomeClass>(opt);
-
-				Script.GlobalOptions.CustomConverters.Clear();
-
-				Script.GlobalOptions.CustomConverters.SetScriptToClrCustomConversion(DataType.Table, typeof(List<string>),
-					v => null);
-
-				Script.GlobalOptions.CustomConverters.SetScriptToClrCustomConversion(DataType.Table, typeof(IList<int>),
-					v => new List<int>() { 42, 77, 125, 13 });
-
-				Script.GlobalOptions.CustomConverters.SetScriptToClrCustomConversion(DataType.Table, typeof(int[]),
-					v => new int[] { 43, 78, 126, 14 });
-
-				Script.GlobalOptions.CustomConverters.SetClrToScriptCustomConversion<StringBuilder>(
-					(_s, v) => DynValue.NewString(v.ToString().ToUpper()));
-
-
-				S.Globals.Set("static", UserData.CreateStatic<SomeClass>());
-				S.Globals.Set("myobj", UserData.Create(obj));
-
-				DynValue res = S.DoString(script);
-
-				Assert.AreEqual(DataType.String, res.Type);
-				Assert.AreEqual("CIAO,HELLO,ALOHA|42,77,125,13|ALOHA,CIAO,HELLO|39,78,128|CIAO,HELLO,ALOHA|43,78,126,14", res.String);
-			}
-			finally
-			{
-				Script.GlobalOptions.CustomConverters.Clear();
-			}
 		}
 
 
@@ -487,7 +435,7 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 			UserData.UnregisterType<SomeClass>();
 
 			string script = @"    
-				x, y, z = myobj:manipulateString('CiAo', 'hello');
+				x, y, z = myobj:ManipulateString('CiAo', 'hello');
 				return x, y, z;";
 
 			Script S = new Script();
@@ -738,24 +686,6 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 		}
 
 		[Test]
-		public void VInterop_ConcatMethodStaticCplxCustomConv_None()
-		{
-			Test_ConcatMethodStaticComplexCustomConv(InteropAccessMode.Reflection);
-		}
-
-		[Test]
-		public void VInterop_ConcatMethodStaticCplxCustomConv_Lazy()
-		{
-			Test_ConcatMethodStaticComplexCustomConv(InteropAccessMode.LazyOptimized);
-		}
-
-		[Test]
-		public void VInterop_ConcatMethodStaticCplxCustomConv_Precomputed()
-		{
-			Test_ConcatMethodStaticComplexCustomConv(InteropAccessMode.Preoptimized);
-		}
-
-		[Test]
 		public void VInterop_ConcatMethodStaticCplx_None()
 		{
 			Test_ConcatMethodStaticComplex(InteropAccessMode.Reflection);
@@ -949,36 +879,6 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 
 			Assert.AreEqual(DataType.String, res.Type);
 			Assert.AreEqual("Test1Test2", res.String);
-		}
-
-		[Test]
-		public void VInterop_TestNamesCamelized()
-		{
-			UserData.UnregisterType<SomeClass>();
-
-			string script = @"    
-				a = myobj:SomeMethodWithLongName(1);
-				b = myobj:someMethodWithLongName(2);
-				c = myobj:some_method_with_long_name(3);
-				d = myobj:Some_method_withLong_name(4);
-				
-				return a + b + c + d;
-			";
-
-			Script S = new Script();
-
-			SomeClass obj = new SomeClass();
-
-			UserData.UnregisterType<SomeClass>();
-			UserData.RegisterType<SomeClass>();
-
-			S.Globals.Set("myobj", UserData.Create(obj));
-
-			DynValue res = S.DoString(script);
-
-			Assert.AreEqual(DataType.Number, res.Type);
-			Assert.AreEqual(20, res.Number);
-
 		}
 
 		[Test]

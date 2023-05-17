@@ -58,7 +58,7 @@ namespace MoonSharp.Interpreter.DataStructs
 		/// An empty collection is returned if not found.
 		/// </summary>
 		/// <param name="key">The key.</param>
-		public IEnumerable<V> Find(K key)
+		public IReadOnlyList<V> Find(K key)
 		{
 			List<V> list;
 			if (m_Map.TryGetValue(key, out list))

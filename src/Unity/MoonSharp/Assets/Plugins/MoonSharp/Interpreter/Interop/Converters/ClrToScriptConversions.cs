@@ -51,14 +51,6 @@ namespace MoonSharp.Interpreter.Interop.Converters
 				return (DynValue)obj;
 
 
-			var converter = Script.GlobalOptions.CustomConverters.GetClrToScriptCustomConversion(obj.GetType());
-			if (converter != null)
-			{
-				var v = converter(script, obj);
-				if (v != null)
-					return v;
-			}
-
 			Type t = obj.GetType();
 
 			if (obj is bool)

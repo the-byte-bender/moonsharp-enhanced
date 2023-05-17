@@ -116,56 +116,56 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 		[Test]
 		public void VInterop_Overloads_Varargs1()
 		{
-			RunTestOverload("o:methodV('{0}-{1}', 15, true)", "exact:15-True");
+			RunTestOverload("o:MethodV('{0}-{1}', 15, true)", "exact:15-True");
 		}
 
 		[Test]
 		public void VInterop_Overloads_Varargs2()
 		{
-			RunTestOverload("o:methodV('{0}-{1}-{2}', 15, true, false)", "varargs:15-True-False");
+			RunTestOverload("o:MethodV('{0}-{1}-{2}', 15, true, false)", "varargs:15-True-False");
 		}
 
 
 		[Test]
 		public void VInterop_Overloads_ByRef()
 		{
-			RunTestOverload("o:method2('x', 'y')", "v");
+			RunTestOverload("o:Method2('x', 'y')", "v");
 		}
 
 		[Test]
 		public void VInterop_Overloads_ByRef2()
 		{
-			RunTestOverload("o:method2('x', 'y', 5)", "R", true);
+			RunTestOverload("o:Method2('x', 'y', 5)", "R", true);
 		}
 
 		[Test]
 		public void VInterop_Overloads_NoParams()
 		{
-			RunTestOverload("o:method1()", "1");
+			RunTestOverload("o:Method1()", "1");
 		}
 
 		[Test]
 		public void VInterop_Overloads_NumDowncast()
 		{
-			RunTestOverload("o:method1(5)", "3");
+			RunTestOverload("o:Method1(5)", "3");
 		}
 
 		[Test]
 		public void VInterop_Overloads_NilSelectsNonOptional()
 		{
-			RunTestOverload("o:method1(5, nil)", "4");
+			RunTestOverload("o:Method1(5, nil)", "4");
 		}
 
 		[Test]
 		public void VInterop_Overloads_FullDecl()
 		{
-			RunTestOverload("o:method1(5, nil, 0)", "5");
+			RunTestOverload("o:Method1(5, nil, 0)", "5");
 		}
 
 		[Test]
 		public void VInterop_Overloads_Static1()
 		{
-			RunTestOverload("s:method1(true)", "s");
+			RunTestOverload("s:Method1(true)", "s");
 		}
 
 		[Test]
@@ -173,63 +173,67 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 		{
 			UserData.RegisterExtensionType(typeof(VtOverloadsExtMethods));
 
-			RunTestOverload("o:method1('xx', true)", "X1");
-			RunTestOverload("o:method3()", "X3");
+			RunTestOverload("o:Method1('xx', true)", "X1");
+			RunTestOverload("o:Method3()", "X3");
 		}
 
 		[Test]
-		[ExpectedException(typeof(ScriptRuntimeException))]
 		public void VInterop_Overloads_ExtMethods2()
 		{
-			UserData.RegisterExtensionType(typeof(VtOverloadsExtMethods));
-			RunTestOverload("s:method3()", "X3");
+			Assert.Throws<ScriptRuntimeException>(() =>
+			{
+				UserData.RegisterExtensionType(typeof(VtOverloadsExtMethods));
+				RunTestOverload("s:Method3()", "X3");
+			});
 		}
 
 
 
 		[Test]
-		[ExpectedException(typeof(ScriptRuntimeException))]
 		public void VInterop_Overloads_Static2()
 		{
-			// pollute cache
-			RunTestOverload("o:method1(5)", "3");
-			// exec non static on static
-			RunTestOverload("s:method1(5)", "s");
+			Assert.Throws<ScriptRuntimeException>(() =>
+			{
+				// pollute cache
+				RunTestOverload("o:Method1(5)", "3");
+				// exec non static on static
+				RunTestOverload("s:Method1(5)", "s");
+			});
 		}
 
 		[Test]
 		public void VInterop_Overloads_Cache1()
 		{
-			RunTestOverload("o:method1(5)", "3");
-			RunTestOverload("o:method1(5)", "3");
-			RunTestOverload("o:method1(5)", "3");
-			RunTestOverload("o:method1(5)", "3");
+			RunTestOverload("o:Method1(5)", "3");
+			RunTestOverload("o:Method1(5)", "3");
+			RunTestOverload("o:Method1(5)", "3");
+			RunTestOverload("o:Method1(5)", "3");
 		}
 
 		[Test]
 		public void VInterop_Overloads_Cache2()
 		{
-			RunTestOverload("o:method1()", "1");
-			RunTestOverload("o:method1(5)", "3");
-			RunTestOverload("o:method1(5, nil)", "4");
-			RunTestOverload("o:method1(5, nil, 0)", "5");
-			RunTestOverload("o:method1(5)", "3");
-			RunTestOverload("s:method1(true)", "s");
-			RunTestOverload("o:method1(5, nil, 0)", "5");
-			RunTestOverload("o:method1(5, 'x')", "4");
-			RunTestOverload("o:method1(5)", "3");
-			RunTestOverload("o:method1(5, 'x', 0)", "5");
-			RunTestOverload("o:method1(5)", "3");
-			RunTestOverload("o:method1(5, nil, 0)", "5");
-			RunTestOverload("s:method1(true)", "s");
-			RunTestOverload("o:method1(5)", "3");
-			RunTestOverload("o:method1(5, 5)", "4");
-			RunTestOverload("o:method1(5, nil, 0)", "5");
-			RunTestOverload("o:method1(5)", "3");
-			RunTestOverload("s:method1(true)", "s");
-			RunTestOverload("o:method1(5)", "3");
-			RunTestOverload("o:method1(5, 5, 0)", "5");
-			RunTestOverload("s:method1(true)", "s");
+			RunTestOverload("o:Method1()", "1");
+			RunTestOverload("o:Method1(5)", "3");
+			RunTestOverload("o:Method1(5, nil)", "4");
+			RunTestOverload("o:Method1(5, nil, 0)", "5");
+			RunTestOverload("o:Method1(5)", "3");
+			RunTestOverload("s:Method1(true)", "s");
+			RunTestOverload("o:Method1(5, nil, 0)", "5");
+			RunTestOverload("o:Method1(5, 'x')", "4");
+			RunTestOverload("o:Method1(5)", "3");
+			RunTestOverload("o:Method1(5, 'x', 0)", "5");
+			RunTestOverload("o:Method1(5)", "3");
+			RunTestOverload("o:Method1(5, nil, 0)", "5");
+			RunTestOverload("s:Method1(true)", "s");
+			RunTestOverload("o:Method1(5)", "3");
+			RunTestOverload("o:Method1(5, 5)", "4");
+			RunTestOverload("o:Method1(5, nil, 0)", "5");
+			RunTestOverload("o:Method1(5)", "3");
+			RunTestOverload("s:Method1(true)", "s");
+			RunTestOverload("o:Method1(5)", "3");
+			RunTestOverload("o:Method1(5, 5, 0)", "5");
+			RunTestOverload("s:Method1(true)", "s");
 		}
 
 	

@@ -138,9 +138,9 @@ namespace MoonSharp.Interpreter.Tests
 				};
 			}
 
-			ExpectedExceptionAttribute expectedEx = mi.GetCustomAttributes(typeof(ExpectedExceptionAttribute), true)
-				.OfType<ExpectedExceptionAttribute>()
-				.FirstOrDefault();
+			//ExpectedExceptionAttribute expectedEx = mi.GetCustomAttributes(typeof(ExpectedExceptionAttribute), true)
+			//	.OfType<ExpectedExceptionAttribute>()
+			//	.FirstOrDefault();
 
 
 			try
@@ -148,16 +148,16 @@ namespace MoonSharp.Interpreter.Tests
 				object o = Activator.CreateInstance(t);
 				mi.Invoke(o, new object[0]);
 
-				if (expectedEx != null)
-				{
-					return new TestResult()
-					{
-						TestName = mi.Name,
-						Message = string.Format("Exception {0} expected", expectedEx.ExpectedException),
-						Type = TestResultType.Fail
-					};
-				}
-				else
+				//if (expectedEx != null)
+				//{
+				//	return new TestResult()
+				//	{
+				//		TestName = mi.Name,
+				//		Message = string.Format("Exception {0} expected", expectedEx.ExpectedException),
+				//		Type = TestResultType.Fail
+				//	};
+				//}
+				//else
 				{
 					return new TestResult()
 					{
@@ -181,16 +181,16 @@ namespace MoonSharp.Interpreter.Tests
 					};
 				}
 
-				if (expectedEx != null && Framework.Do.IsInstanceOfType(expectedEx.ExpectedException, ex))
-				{
-					return new TestResult()
-					{
-						TestName = mi.Name,
-						Message = "ok",
-						Type = TestResultType.Ok
-					};
-				}
-				else
+				//if (expectedEx != null && Framework.Do.IsInstanceOfType(expectedEx.ExpectedException, ex))
+				//{
+				//	return new TestResult()
+				//	{
+				//		TestName = mi.Name,
+				//		Message = "ok",
+				//		Type = TestResultType.Ok
+				//	};
+				//}
+				//else
 				{
 					return new TestResult()
 					{

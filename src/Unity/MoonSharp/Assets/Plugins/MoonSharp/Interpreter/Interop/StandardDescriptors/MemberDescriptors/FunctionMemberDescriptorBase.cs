@@ -67,7 +67,14 @@ namespace MoonSharp.Interpreter.Interop
 				VarArgsElementType = Parameters[Parameters.Length - 1].Type.GetElementType();
 			}
 
-			SortDiscriminant = string.Join(":", Parameters.Select(pi => pi.Type.FullName).ToArray());
+			var length = parameters.Length;
+			string[] fullNames = new string[length];
+			for (var i = 0; i < length; i++)
+            {
+				fullNames[i] = parameters[i].Type.FullName;
+            }
+
+			SortDiscriminant = string.Join(":", fullNames);
 		}
 
 

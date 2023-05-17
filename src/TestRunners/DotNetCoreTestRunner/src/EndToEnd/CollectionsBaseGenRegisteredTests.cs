@@ -230,7 +230,7 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 		public void RegCollGen_IteratorOnArray_ChangeElem()
 		{
 			Do(@"
-				local array = o:get_array()
+				local array = o:GetArray()
 
 				array[1] = array[2] - 1;
 
@@ -314,7 +314,7 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 					end
 				end
 
-				local list = o.get_items(); 
+				local list = o.GetItems(); 
 
 				local x = 0;
 				for i in each(list) do 

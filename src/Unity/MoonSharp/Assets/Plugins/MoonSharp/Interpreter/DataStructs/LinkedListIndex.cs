@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace MoonSharp.Interpreter.DataStructs
 {
@@ -27,16 +28,16 @@ namespace MoonSharp.Interpreter.DataStructs
 		/// Finds the node indexed by the specified key, or null.
 		/// </summary>
 		/// <param name="key">The key.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public LinkedListNode<TValue> Find(TKey key)
 		{
 			LinkedListNode<TValue> node;
 
-			if (m_Map == null)
-				return null;
-
-			if (m_Map.TryGetValue(key, out node))
-				return node;
-
+			if (m_Map != null)
+			{
+				if (m_Map.TryGetValue(key, out node))
+					return node;
+			}
 			return null;
 		}
 

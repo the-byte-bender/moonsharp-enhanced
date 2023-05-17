@@ -429,24 +429,30 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 
 
 		[Test]
-		[ExpectedException(typeof(ScriptRuntimeException))]
 		public void Interop_InvalidFieldSetter_None()
 		{
-			Test_InvalidFieldSetter(InteropAccessMode.Reflection);
+			Assert.Throws<ScriptRuntimeException>(() =>
+			{
+				Test_InvalidFieldSetter(InteropAccessMode.Reflection);
+			});
 		}
 
 		[Test]
-		[ExpectedException(typeof(ScriptRuntimeException))]
 		public void Interop_InvalidFieldSetter_Lazy()
 		{
-			Test_InvalidFieldSetter(InteropAccessMode.LazyOptimized);
+			Assert.Throws<ScriptRuntimeException>(() =>
+			{
+				Test_InvalidFieldSetter(InteropAccessMode.LazyOptimized);
+			});
 		}
 
 		[Test]
-		[ExpectedException(typeof(ScriptRuntimeException))]
 		public void Interop_InvalidFieldSetter_Precomputed()
 		{
-			Test_InvalidFieldSetter(InteropAccessMode.Preoptimized);
+			Assert.Throws<ScriptRuntimeException>(() =>
+			{
+				Test_InvalidFieldSetter(InteropAccessMode.Preoptimized);
+			});
 		}
 
 

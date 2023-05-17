@@ -15,7 +15,6 @@ namespace MoonSharp.VsCodeDebugger.DebuggerLogic
 		{
 			variables.Add(new Variable("(value)", v.ToPrintString()));
 			variables.Add(new Variable("(type)", v.Type.ToLuaDebuggerString()));
-			variables.Add(new Variable("(val #id)", v.ReferenceID.ToString()));
 
 			switch (v.Type)
 			{

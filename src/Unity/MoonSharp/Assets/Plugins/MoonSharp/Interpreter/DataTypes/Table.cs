@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using MoonSharp.Interpreter.DataStructs;
 
 namespace MoonSharp.Interpreter
@@ -69,6 +70,7 @@ namespace MoonSharp.Interpreter
 		/// <summary>
 		/// Gets the integral key from a double.
 		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private int GetIntegralKey(double d)
 		{
 			int v = ((int)d);
@@ -306,6 +308,7 @@ namespace MoonSharp.Interpreter
 		/// Gets the value associated with the specified key.
 		/// </summary>
 		/// <param name="key">The key.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public DynValue Get(string key)
 		{
 			//Contract.Ensures(Contract.Result<DynValue>() != null);
@@ -316,6 +319,7 @@ namespace MoonSharp.Interpreter
 		/// Gets the value associated with the specified key.
 		/// </summary>
 		/// <param name="key">The key.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public DynValue Get(int key)
 		{
 			//Contract.Ensures(Contract.Result<DynValue>() != null);
@@ -326,6 +330,7 @@ namespace MoonSharp.Interpreter
 		/// Gets the value associated with the specified key.
 		/// </summary>
 		/// <param name="key">The key.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public DynValue Get(DynValue key)
 		{
 			//Contract.Ensures(Contract.Result<DynValue>() != null);
@@ -337,6 +342,7 @@ namespace MoonSharp.Interpreter
 		/// (expressed as a <see cref="System.Object"/>).
 		/// </summary>
 		/// <param name="key">The key.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public DynValue Get(object key)
 		{
 			//Contract.Ensures(Contract.Result<DynValue>() != null);
@@ -350,6 +356,7 @@ namespace MoonSharp.Interpreter
 		/// Multiple keys can be used to access subtables.
 		/// </summary>
 		/// <param name="keys">The keys to access the table and subtables</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public DynValue Get(params object[] keys)
 		{
 			//Contract.Ensures(Contract.Result<DynValue>() != null);
@@ -360,9 +367,10 @@ namespace MoonSharp.Interpreter
 
 		#region RawGet
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static DynValue RawGetValue(LinkedListNode<TablePair> linkedListNode)
 		{
-			return (linkedListNode != null) ? linkedListNode.Value.Value : null;
+			return linkedListNode?.Value.Value;
 		}
 
 		/// <summary>
@@ -370,6 +378,7 @@ namespace MoonSharp.Interpreter
 		/// without bringing to Nil the non-existant values.
 		/// </summary>
 		/// <param name="key">The key.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public DynValue RawGet(string key)
 		{
 			return RawGetValue(m_StringMap.Find(key));
@@ -380,6 +389,7 @@ namespace MoonSharp.Interpreter
 		/// without bringing to Nil the non-existant values.
 		/// </summary>
 		/// <param name="key">The key.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public DynValue RawGet(int key)
 		{
 			return RawGetValue(m_ArrayMap.Find(key));
@@ -461,6 +471,7 @@ namespace MoonSharp.Interpreter
 		/// </summary>
 		/// <param name="key">The key.</param>
 		/// <returns><c>true</c> if values was successfully removed; otherwise, <c>false</c>.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool Remove(string key)
 		{
 			return PerformTableRemove(m_StringMap, key, false);
@@ -471,6 +482,7 @@ namespace MoonSharp.Interpreter
 		/// </summary>
 		/// <param name="key">The key.</param>
 		/// <returns><c>true</c> if values was successfully removed; otherwise, <c>false</c>.</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool Remove(int key)
 		{
 			return PerformTableRemove(m_ArrayMap, key, true);

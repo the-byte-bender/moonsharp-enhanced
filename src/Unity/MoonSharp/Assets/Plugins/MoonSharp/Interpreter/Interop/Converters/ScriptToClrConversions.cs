@@ -33,14 +33,6 @@ namespace MoonSharp.Interpreter.Interop.Converters
 		/// </summary>
 		internal static object DynValueToObject(DynValue value)
 		{
-			var converter = Script.GlobalOptions.CustomConverters.GetScriptToClrCustomConversion(value.Type, typeof(System.Object));
-			if (converter != null)
-			{
-				var v = converter(value);
-				if (v != null)
-					return v;
-			}
-
 			switch (value.Type)
 			{
 				case DataType.Void:
@@ -80,13 +72,6 @@ namespace MoonSharp.Interpreter.Interop.Converters
 		{
 			if (desiredType.IsByRef)
 				desiredType = desiredType.GetElementType();
-
-			var converter = Script.GlobalOptions.CustomConverters.GetScriptToClrCustomConversion(value.Type, desiredType);
-			if (converter != null)
-			{
-				var v = converter(value);
-				if (v != null) return v;
-			}
 
 			if (desiredType == typeof(DynValue))
 				return value;
@@ -199,10 +184,6 @@ namespace MoonSharp.Interpreter.Interop.Converters
 		{
 			if (desiredType.IsByRef)
 				desiredType = desiredType.GetElementType();
-
-			var customConverter = Script.GlobalOptions.CustomConverters.GetScriptToClrCustomConversion(value.Type, desiredType);
-			if (customConverter != null)
-				return WEIGHT_CUSTOM_CONVERTER_MATCH;
 
 			if (desiredType == typeof(DynValue))
 				return WEIGHT_EXACT_MATCH;

@@ -10,8 +10,8 @@ namespace MoonSharp.Interpreter.Execution.VM
 	{
 		ByteCode m_RootChunk;
 
-		FastStack<DynValue> m_ValueStack = new FastStack<DynValue>(131072);
-		FastStack<CallStackItem> m_ExecutionStack = new FastStack<CallStackItem>(131072);
+		readonly FastStack<DynValue> m_ValueStack;
+		readonly FastStack<CallStackItem> m_ExecutionStack;
 		List<Processor> m_CoroutinesStack;
 
 		Table m_GlobalTable;
@@ -21,9 +21,15 @@ namespace MoonSharp.Interpreter.Execution.VM
 		bool m_CanYield = true;
 		int m_SavedInstructionPtr = -1;
 		DebugContext m_Debug;
+		readonly int m_ExecutionStackSize;
+		readonly int m_ValueStackSize;
 
-		public Processor(Script script, Table globalContext, ByteCode byteCode)
+		public Processor(Script script, Table globalContext, ByteCode byteCode, int executionStackSize, int valueStackSize)
 		{
+			m_ExecutionStackSize = executionStackSize;
+			m_ExecutionStack = new FastStack<CallStackItem>(executionStackSize);
+			m_ValueStackSize = valueStackSize;
+			m_ValueStack = new FastStack<DynValue>(valueStackSize);
 			m_CoroutinesStack = new List<Processor>();
 
 			m_Debug = new DebugContext();
@@ -36,6 +42,11 @@ namespace MoonSharp.Interpreter.Execution.VM
 
 		private Processor(Processor parentProcessor)
 		{
+			m_ExecutionStackSize = parentProcessor.m_ExecutionStackSize;
+			m_ExecutionStack = new FastStack<CallStackItem>(m_ExecutionStackSize);
+			m_ValueStackSize = parentProcessor.m_ValueStackSize;
+			m_ValueStack = new FastStack<DynValue>(m_ValueStackSize);
+
 			m_Debug = parentProcessor.m_Debug;
 			m_RootChunk = parentProcessor.m_RootChunk;
 			m_GlobalTable = parentProcessor.m_GlobalTable;

@@ -8,9 +8,9 @@ namespace MoonSharp.Interpreter.Execution
 		public Script Script { get; private set; }
 		public BuildTimeScope Scope { get; set; }
 		public SourceCode Source { get; set; }
+		public Lexer Lexer { get; set; }
 		public bool Anonymous { get; set; }
 		public bool IsDynamicExpression { get; set; }
-		public Lexer Lexer { get; set; }
 
 		public ScriptLoadingContext(Script s)
 		{

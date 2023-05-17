@@ -58,7 +58,7 @@ namespace MoonSharp.Interpreter
 		/// <param name="idx">The index.</param>
 		/// <param name="symbols">The symbols.</param>
 		/// <param name="resolvedLocals">The resolved locals.</param>
-		internal Closure(Script script, int idx, SymbolRef[] symbols, IEnumerable<DynValue> resolvedLocals)
+		internal Closure(Script script, int idx, SymbolRef[] symbols, IEnumerable<DynValueAccessor> resolvedLocals)
 		{
 			OwnerScript = script;
 
@@ -148,7 +148,7 @@ namespace MoonSharp.Interpreter
 		/// <returns>The value of an upvalue </returns>
 		public DynValue GetUpvalue(int idx)
 		{
-			return ClosureContext[idx];
+			return ClosureContext[idx].Get();
 		}
 
 		/// <summary>

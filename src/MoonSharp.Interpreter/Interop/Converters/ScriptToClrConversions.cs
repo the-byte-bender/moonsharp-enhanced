@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using MoonSharp.Interpreter.Compatibility;
 
 namespace MoonSharp.Interpreter.Interop.Converters
@@ -34,14 +33,6 @@ namespace MoonSharp.Interpreter.Interop.Converters
 		/// </summary>
 		internal static object DynValueToObject(DynValue value)
 		{
-			var converter = Script.GlobalOptions.CustomConverters.GetScriptToClrCustomConversion(value.Type, typeof(System.Object));
-			if (converter != null)
-			{
-				var v = converter(value);
-				if (v != null)
-					return v;
-			}
-
 			switch (value.Type)
 			{
 				case DataType.Void:
@@ -81,13 +72,6 @@ namespace MoonSharp.Interpreter.Interop.Converters
 		{
 			if (desiredType.IsByRef)
 				desiredType = desiredType.GetElementType();
-
-			var converter = Script.GlobalOptions.CustomConverters.GetScriptToClrCustomConversion(value.Type, desiredType);
-			if (converter != null)
-			{
-				var v = converter(value);
-				if (v != null) return v;
-			}
 
 			if (desiredType == typeof(DynValue))
 				return value;
@@ -141,15 +125,10 @@ namespace MoonSharp.Interpreter.Interop.Converters
 						Type underType = Enum.GetUnderlyingType(desiredType);
 						return NumericConversions.DoubleToType(underType, value.Number);
 					}
-                    			if (NumericConversions.NumericTypes.Contains(desiredType))
-                    			{
-                        			object d = NumericConversions.DoubleToType(desiredType, value.Number);
-                        			if (d.GetType() == desiredType)
-                            				return d;
-                        			break;
-                    			}
+					if (NumericConversions.NumericTypes.Contains(desiredType))
+						return NumericConversions.DoubleToType(desiredType, value.Number);
 					if (stringSubType != StringConversions.StringSubtype.None)
-						str = value.Number.ToString(CultureInfo.InvariantCulture);
+						str = value.Number.ToString();
 					break;
 				case DataType.String:
 					if (stringSubType != StringConversions.StringSubtype.None)
@@ -205,10 +184,6 @@ namespace MoonSharp.Interpreter.Interop.Converters
 		{
 			if (desiredType.IsByRef)
 				desiredType = desiredType.GetElementType();
-
-			var customConverter = Script.GlobalOptions.CustomConverters.GetScriptToClrCustomConversion(value.Type, desiredType);
-			if (customConverter != null)
-				return WEIGHT_CUSTOM_CONVERTER_MATCH;
 
 			if (desiredType == typeof(DynValue))
 				return WEIGHT_EXACT_MATCH;

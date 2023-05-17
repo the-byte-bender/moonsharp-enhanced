@@ -8,14 +8,14 @@ namespace MoonSharp.Interpreter.Execution.VM
 {
 	internal class Instruction
 	{
-		internal OpCode OpCode;
 		internal SymbolRef Symbol;
 		internal SymbolRef[] SymbolList;
 		internal string Name;
 		internal DynValue Value;
+		internal SourceRef SourceCodeRef;
 		internal int NumVal;
 		internal int NumVal2;
-		internal SourceRef SourceCodeRef;
+		internal OpCode OpCode;
 
 		internal Instruction(SourceRef sourceref)
 		{

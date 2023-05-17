@@ -12,13 +12,7 @@ namespace MoonSharp.Interpreter
 		internal ScriptGlobalOptions()
 		{
 			Platform = PlatformAutoDetector.GetDefaultPlatform();
-			CustomConverters = new CustomConvertersCollection();
 		}
-
-		/// <summary>
-		/// Gets or sets the custom converters.
-		/// </summary>
-		public CustomConvertersCollection CustomConverters { get; set; }
 
 		/// <summary>
 		/// Gets or sets the platform abstraction to use.

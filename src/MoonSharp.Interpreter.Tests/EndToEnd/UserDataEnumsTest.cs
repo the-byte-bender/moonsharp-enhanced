@@ -95,12 +95,6 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 		}
 
 		[Test]
-		public void Interop_Enum_Simple2()
-		{
-			RunTestOverload("o:MyMethod2(MyEnum.cinque)", "(Cinque)");
-		}
-
-		[Test]
 		public void Interop_Enum_Overload1()
 		{
 			RunTestOverload("o:MyMethod(MyFlags.flagsOr(MyFlags.Uno, MyFlags.Due))", "3");
@@ -175,13 +169,13 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 		[Test]
 		public void Interop_Enum_Read()
 		{
-			RunTestOverload("o:MyMethod(o:get())", "[Quattro]");
+			RunTestOverload("o:MyMethod(o:Get())", "[Quattro]");
 		}
 
 		[Test]
 		public void Interop_Enum_Flags_Or_Meta_Read()
 		{
-			RunTestOverload("o:MyMethod(o:getF() .. MyFlags.Due)", "6");
+			RunTestOverload("o:MyMethod(o:GetF() .. MyFlags.Due)", "6");
 		}
 
 

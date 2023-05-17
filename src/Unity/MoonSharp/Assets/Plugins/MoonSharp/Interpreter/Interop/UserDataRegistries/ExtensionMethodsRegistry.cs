@@ -82,7 +82,7 @@ namespace MoonSharp.Interpreter.Interop.UserDataRegistries
 		public static IEnumerable<IOverloadableMemberDescriptor> GetExtensionMethodsByName(string name)
 		{
 			lock (s_Lock)
-				return new List<IOverloadableMemberDescriptor>(s_Registry.Find(name));
+				return s_Registry.Find(name);
 		}
 
 		/// <summary>
@@ -104,15 +104,16 @@ namespace MoonSharp.Interpreter.Interop.UserDataRegistries
 		/// <returns></returns>
 		public static List<IOverloadableMemberDescriptor> GetExtensionMethodsByNameAndType(string name, Type extendedType)
 		{
-			List<UnresolvedGenericMethod> unresolvedGenerics = null;
+			IReadOnlyList<UnresolvedGenericMethod> unresolvedGenerics = null;
 
 			lock (s_Lock)
 			{
-				unresolvedGenerics = s_UnresolvedGenericsRegistry.Find(name).ToList();
+				unresolvedGenerics = s_UnresolvedGenericsRegistry.Find(name);
 			}
 
-			foreach (UnresolvedGenericMethod ugm in unresolvedGenerics)
+			for (var i = 0; i < unresolvedGenerics.Count; i++)
 			{
+				UnresolvedGenericMethod ugm = unresolvedGenerics[i];
 				ParameterInfo[] args = ugm.Method.GetParameters();
 				if (args.Length == 0) continue;
 				Type extensionType = args[0].ParameterType;

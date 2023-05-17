@@ -216,33 +216,45 @@ namespace MoonSharp.Interpreter.CoreLib
 			return fn; // tail call to dofile
 		}
 
-
 		[MoonSharpModuleMethod]
-		public const string require = @"
-function(modulename)
-	if (package == nil) then package = { }; end
-	if (package.loaded == nil) then package.loaded = { }; end
+		public static DynValue require(ScriptExecutionContext executionContext, CallbackArguments args)
+        {
+			Script S = executionContext.GetScript();
+			var package = S.Globals.Get("package").Table;
+			if (package == null)
+            {
+				var newPackage = DynValue.NewTable(S);
+				S.Globals.Set("package", newPackage);
+				package = newPackage.Table;
+            }
 
-	local m = package.loaded[modulename];
+			var loaded = package.Get("loaded").Table;
+			if (loaded == null)
+            {
+				var newLoaded = DynValue.NewTable(S);
+				package.Set("loaded", newLoaded);
+				loaded = newLoaded.Table;
+			}
 
-	if (m ~= nil) then
-		return m;
-	end
+			DynValue moduleName = args.AsType(0, "require", DataType.String, false);
+			var m = loaded.Get(moduleName);
+			if (m != DynValue.Nil)
+            {
+				return m;
+            }
 
-	local func = __require_clr_impl(modulename);
+			var func = __require_clr_impl(executionContext, args);
 
-	local res = func(modulename);
+			var res = S.Call(func, moduleName);
 
-	if (res == nil) then
-		res = true;
-	end
+			if (res == DynValue.Nil)
+            {
+				res = DynValue.NewBoolean(true);
+            }
 
-	package.loaded[modulename] = res;
+			loaded.Set(moduleName, res);
 
-	return res;
-end";
-
-
-
+			return res;
+		}
 	}
 }

@@ -1,12 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp1.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <DefineConstants>$(DefineConstants);DOTNET_CORE;EMBEDTEST</DefineConstants>
     <AssemblyName>DotNetCoreTestRunner</AssemblyName>
     <OutputType>Exe</OutputType>
     <PackageId>DotNetCoreTestRunner</PackageId>
-    <RuntimeFrameworkVersion>1.0.4</RuntimeFrameworkVersion>
     <PackageTargetFallback>$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
@@ -14,8 +13,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\MoonSharp.Interpreter\_Projects\MoonSharp.Interpreter.netcore\MoonSharp.Interpreter.netcore.csproj" />
-    <ProjectReference Include="..\..\MoonSharp.VsCodeDebugger\_Projects\MoonSharp.VsCodeDebugger.netcore\MoonSharp.VsCodeDebugger.netcore.csproj" />
+    <PackageReference Include="NUnit" Version="3.13.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\MoonSharp.Interpreter\MoonSharp.Interpreter.csproj" />
+    <ProjectReference Include="..\..\MoonSharp.VsCodeDebugger\MoonSharp.VsCodeDebugger.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -124,19 +124,21 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 		}
 
 		[Test]
-		[ExpectedException(typeof(ScriptRuntimeException))]
 		public void Interop_NestedTypes_Private_Ref_2()
 		{
-			Script S = new Script();
+			Assert.Throws<ScriptRuntimeException>(() =>
+			{
+				Script S = new Script();
 
-			UserData.RegisterType<SomeType>();
+				UserData.RegisterType<SomeType>();
 
-			S.Globals.Set("o", UserData.CreateStatic<SomeType>());
+				S.Globals.Set("o", UserData.CreateStatic<SomeType>());
 
-			DynValue res = S.DoString("return o.SomeNestedTypePrivate2:Get()");
+				DynValue res = S.DoString("return o.SomeNestedTypePrivate2:Get()");
 
-			Assert.AreEqual(DataType.String, res.Type);
-			Assert.AreEqual("Ciao from SomeNestedTypePrivate2", res.String);
+				Assert.AreEqual(DataType.String, res.Type);
+				Assert.AreEqual("Ciao from SomeNestedTypePrivate2", res.String);
+			});
 		}
 
 		[Test]
@@ -171,19 +173,21 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 		}
 
 		[Test]
-		[ExpectedException(typeof(ScriptRuntimeException))]
 		public void Interop_NestedTypes_Private_Val_2()
 		{
-			Script S = new Script();
+			Assert.Throws<ScriptRuntimeException>(() =>
+			{
+				Script S = new Script();
 
-			UserData.RegisterType<VSomeType>();
+				UserData.RegisterType<VSomeType>();
 
-			S.Globals.Set("o", UserData.CreateStatic<VSomeType>());
+				S.Globals.Set("o", UserData.CreateStatic<VSomeType>());
 
-			DynValue res = S.DoString("return o.SomeNestedTypePrivate2:Get()");
+				DynValue res = S.DoString("return o.SomeNestedTypePrivate2:Get()");
 
-			Assert.AreEqual(DataType.String, res.Type);
-			Assert.AreEqual("Ciao from SomeNestedTypePrivate2", res.String);
+				Assert.AreEqual(DataType.String, res.Type);
+				Assert.AreEqual("Ciao from SomeNestedTypePrivate2", res.String);
+			});
 		}
 
 

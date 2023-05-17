@@ -508,7 +508,6 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 
 
 		[Test]
-		[ExpectedException(typeof(ScriptRuntimeException))]
 		public void PrimeTable_2()
 		{
 			string script = @"    
@@ -517,10 +516,11 @@ namespace MoonSharp.Interpreter.Tests.EndToEnd
 			}
 		";
 
-			Script s = new Script();
-			s.DoString(script);
-
-			Assert.Fail();
+			Assert.Throws<ScriptRuntimeException>(() =>
+			{
+				Script s = new Script();
+				s.DoString(script);
+			});
 		}
 
 

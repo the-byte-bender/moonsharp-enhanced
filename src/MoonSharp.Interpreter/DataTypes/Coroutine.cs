@@ -27,20 +27,16 @@ namespace MoonSharp.Interpreter
 			/// <summary>
 			/// A CLR callback assigned to a coroutine and already executed.
 			/// </summary>
-			ClrCallbackDead,
-			/// <summary>
-			/// A recycled coroutine
-			/// </summary>
-			Recycled
+			ClrCallbackDead
 		}
-
-		/// <summary>
-		/// Gets the type of coroutine
-		/// </summary>
-		public  CoroutineType Type { get; private set; }
 
 		private CallbackFunction m_ClrCallback;
 		private Processor m_Processor;
+		/// <summary>
+		/// Gets the type of coroutine
+		/// </summary>
+		public CoroutineType Type { get; private set; }
+
 
 
 		internal Coroutine(CallbackFunction function)
@@ -66,11 +62,6 @@ namespace MoonSharp.Interpreter
 			Type = CoroutineType.ClrCallbackDead;
 		}
 
-		internal DynValue Recycle(Processor mainProcessor, Closure closure)
-		{
-			Type = CoroutineType.Recycled;
-			return m_Processor.Coroutine_Recycle(mainProcessor, closure);
-		}
 
 		/// <summary>
 		/// Gets this coroutine as a typed enumerable which can be looped over for resuming.

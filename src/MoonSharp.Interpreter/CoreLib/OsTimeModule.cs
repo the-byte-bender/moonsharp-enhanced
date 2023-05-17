@@ -35,9 +35,7 @@ namespace MoonSharp.Interpreter.CoreLib
 		[MoonSharpModuleMethod]
 		public static DynValue clock(ScriptExecutionContext executionContext, CallbackArguments args)
 		{
-			var t = GetUnixTime(DateTime.UtcNow, Time0);
-			if (t.IsNil()) return DynValue.NewNumber(0.0);
-			return t;
+			return GetUnixTime(DateTime.UtcNow, Time0);
 		}
 
 		[MoonSharpModuleMethod]

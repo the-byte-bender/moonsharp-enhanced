@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using MoonSharp.RemoteDebugger;
+using MoonSharp.VsCodeDebugger;
 
 namespace MoonSharp.Commands.Implementations
 {
 	class DebugCommand : ICommand
 	{
-		private RemoteDebuggerService m_Debugger;
+		private MoonSharpVsCodeDebugServer m_Debugger;
 
 		public string Name
 		{
@@ -30,9 +30,9 @@ namespace MoonSharp.Commands.Implementations
 		{
 			if (m_Debugger == null)
 			{
-				m_Debugger = new RemoteDebuggerService();
-				m_Debugger.Attach(context.Script, "MoonSharp REPL interpreter", false);
-				Process.Start(m_Debugger.HttpUrlStringLocalHost);
+				m_Debugger = new MoonSharpVsCodeDebugServer();
+				m_Debugger.AttachToScript(context.Script, "MoonSharp REPL interpreter");
+				m_Debugger.Start();
 			}
 		}
 	}

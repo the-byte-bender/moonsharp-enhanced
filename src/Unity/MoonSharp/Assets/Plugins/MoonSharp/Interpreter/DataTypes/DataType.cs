@@ -5,7 +5,7 @@ namespace MoonSharp.Interpreter
 	/// <summary>
 	/// Enumeration of possible data types in MoonSharp
 	/// </summary>
-	public enum DataType
+	public enum DataType : short
 	{
 		// DO NOT MODIFY ORDER - IT'S SIGNIFICANT
 

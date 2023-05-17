@@ -233,18 +233,15 @@ namespace MoonSharp.Interpreter.Interop.BasicDescriptors
 				return null;
 
 			DynValue v = TryIndex(script, obj, index.String);
-			if (v == null && (Script.GlobalOptions.FuzzySymbolMatching & FuzzySymbolMatchingBehavior.UpperFirstLetter) == FuzzySymbolMatchingBehavior.UpperFirstLetter) v = TryIndex(script, obj, UpperFirstLetter(index.String));
-			if (v == null && (Script.GlobalOptions.FuzzySymbolMatching & FuzzySymbolMatchingBehavior.Camelify) == FuzzySymbolMatchingBehavior.Camelify) v = TryIndex(script, obj, Camelify(index.String));
-			if (v == null && (Script.GlobalOptions.FuzzySymbolMatching & FuzzySymbolMatchingBehavior.PascalCase) == FuzzySymbolMatchingBehavior.PascalCase)	v = TryIndex(script, obj, UpperFirstLetter(Camelify(index.String)));
 
-			if (v == null && m_ExtMethodsVersion < UserData.GetExtensionMethodsChangeVersion())
+			if (v == null) 
 			{
-				m_ExtMethodsVersion = UserData.GetExtensionMethodsChangeVersion();
+				if (m_ExtMethodsVersion < UserData.GetExtensionMethodsChangeVersion())
+				{
+					m_ExtMethodsVersion = UserData.GetExtensionMethodsChangeVersion();
+				}
 
 				v = TryIndexOnExtMethod(script, obj, index.String);
-				if (v == null && (Script.GlobalOptions.FuzzySymbolMatching & FuzzySymbolMatchingBehavior.UpperFirstLetter) == FuzzySymbolMatchingBehavior.UpperFirstLetter) v = TryIndexOnExtMethod(script, obj, UpperFirstLetter(index.String));
-				if (v == null && (Script.GlobalOptions.FuzzySymbolMatching & FuzzySymbolMatchingBehavior.Camelify) == FuzzySymbolMatchingBehavior.Camelify) v = TryIndexOnExtMethod(script, obj, Camelify(index.String));
-				if (v == null && (Script.GlobalOptions.FuzzySymbolMatching & FuzzySymbolMatchingBehavior.PascalCase) == FuzzySymbolMatchingBehavior.PascalCase)	v = TryIndexOnExtMethod(script, obj, UpperFirstLetter(Camelify(index.String)));
 			}
 
 			return v;
@@ -344,9 +341,9 @@ namespace MoonSharp.Interpreter.Interop.BasicDescriptors
 				return false;
 
 			bool v = TrySetIndex(script, obj, index.String, value);
-			if (!v && (Script.GlobalOptions.FuzzySymbolMatching & FuzzySymbolMatchingBehavior.UpperFirstLetter) == FuzzySymbolMatchingBehavior.UpperFirstLetter) v = TrySetIndex(script, obj, UpperFirstLetter(index.String), value);
-			if (!v && (Script.GlobalOptions.FuzzySymbolMatching & FuzzySymbolMatchingBehavior.Camelify) == FuzzySymbolMatchingBehavior.Camelify) v = TrySetIndex(script, obj, Camelify(index.String), value);
-			if (!v && (Script.GlobalOptions.FuzzySymbolMatching & FuzzySymbolMatchingBehavior.PascalCase) == FuzzySymbolMatchingBehavior.PascalCase) v = TrySetIndex(script, obj, UpperFirstLetter(Camelify(index.String)), value);
+			//if (!v) v = TrySetIndex(script, obj, UpperFirstLetter(index.String), value);
+			//if (!v) v = TrySetIndex(script, obj, Camelify(index.String), value);
+			//if (!v) v = TrySetIndex(script, obj, UpperFirstLetter(Camelify(index.String)), value);
 
 			return v;
 		}
@@ -381,28 +378,6 @@ namespace MoonSharp.Interpreter.Interop.BasicDescriptors
 
 			foreach (var m in this.m_Members.Values.OfType<IOptimizableDescriptor>())
 				m.Optimize();
-		}
-
-		/// <summary>
-		/// Converts the specified name from underscore_case to camelCase.
-		/// Just a wrapper over the <see cref="DescriptorHelpers"/> method with the same name,
- 		/// </summary>
-		/// <param name="name">The name.</param>
-		/// <returns></returns>
-		protected static string Camelify(string name)
-		{
-			return DescriptorHelpers.Camelify(name);
-		}
-
-		/// <summary>
-		/// Converts the specified name to one with an uppercase first letter (something to Something).
-		/// Just a wrapper over the <see cref="DescriptorHelpers"/> method with the same name,
-		/// </summary>
-		/// <param name="name">The name.</param>
-		/// <returns></returns>
-		protected static string UpperFirstLetter(string name)
-		{
-			return DescriptorHelpers.UpperFirstLetter(name);
 		}
 
 		/// <summary>
