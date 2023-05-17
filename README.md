@@ -1,4 +1,4 @@
-# Duke's Unity Enhancements to Moonsharp
+# Duke's Unity Enhancements to MoonSharp
 
 For my game Dehoarder 2, I was working on adding moddability to the game, and needed to add a scripting language.
 
