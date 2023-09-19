@@ -24,7 +24,7 @@ They altered the deal, and no amount of praying will prevent them from altering 
 However, I leave this library intact for those who would willingly enter Unity's lions den of bad faith business dealing.
 
 Unity was really really good once, but not any more. It really hasn't been that great since about 2017, really, when I stop to think about it.
-To read more on why this always seems to eventually happen to good services, check out this book: https://chokepointcapitalism.com/
+To read more on why this eventually always seems to happen to good services, check out this book: https://chokepointcapitalism.com/
 
 # Duke's Unity Enhancements to MoonSharp
 
