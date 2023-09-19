@@ -1,3 +1,31 @@
+# Public Service Announcement
+
+Please be aware that as of September 2023 I will no longer be actively working with Unity, and will not be encouraging anyone to work with Unity.
+
+On September 12, 2023, Unity announced new Terms of Service that they claim will supersede the current Terms of Service that I am under, even though
+the Terms of Service that I am under were supposed to include a promise that would allow me stay on the current Terms of Service.
+
+For reference:
+
+https://web.archive.org/web/20230324023920/https://blog.unity.com/community/updated-terms-of-service-and-commitment-to-being-an-open-platform (see section "Retroactive TOS Changes")
+
+https://web.archive.org/web/20230602091206/https://unity.com/legal/terms-of-service/software-legacy (See section 8)
+
+The promise in question was a covenant that was made by Unity to the user community back in 2019 over another situation involving their Terms of Service. It was included in their
+"Commitment to Being an Open Platform"
+Users demanded this covenant in an attempt to re-establish trust that had been broken.
+
+Unity has since eroded these terms in bad faith, and is now claiming that the new Terms of Service, which are substantially more adverse for myriad reasons, are the only terms of service available going forward, even though I have NEVER accepted any of the nerfed terms of service that did not include the promise in question.
+
+By taking these actions and going back on its covenant, Unity has destroyed all trust and has proven itself to be an abusive business partner.
+
+I would strongly caution anyone who wants to use this library to seriously consider whether Unity is the type of business partner that they can trust with their game.
+They altered the deal, and no amount of praying will prevent them from altering it further.
+However, I leave this library intact for those who would willingly enter the lion's den of bad faith business dealing.
+
+Unity was really really good once, but not any more. It really hasn't been that great since about 2017, really, when I stop to think about it.
+To read more on why this always seems to eventually happen to good services, check out this book: https://chokepointcapitalism.com/
+
 # Duke's Unity Enhancements to MoonSharp
 
 For my game Dehoarder 2, I was working on adding moddability to the game, and needed to add a scripting language.
@@ -118,4 +146,4 @@ MoonSharp is really solid out of the box even with 7 years of minimal maintenanc
 frame update, there are a few tweaks you are going to want to make. I've tried to package up as many of those tweaks as I could find here.
 
 I hope you find this useful, and I hope (but do not require) that you credit me for this work if you make use of it. If you do wish to credit me, you can
-say something along the lines of "MoonSharp performance enhancements courtesy of Duke/Smiling Cat Entertainment".
+say something along the lines of "MoonSharp performance enhancements courtesy of Duke/Smiling Cat Entertainment". Of course, be sure to also credit the Moonsharp team.
