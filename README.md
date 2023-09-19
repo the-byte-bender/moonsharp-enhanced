@@ -21,7 +21,7 @@ By taking these actions and going back on its covenant, Unity has destroyed all 
 
 I would strongly caution anyone who wants to use this library to seriously consider whether Unity is the type of business partner that they can trust with their game.
 They altered the deal, and no amount of praying will prevent them from altering it further.
-However, I leave this library intact for those who would willingly enter the lion's den of bad faith business dealing.
+However, I leave this library intact for those who would willingly enter Unity's lions den of bad faith business dealing.
 
 Unity was really really good once, but not any more. It really hasn't been that great since about 2017, really, when I stop to think about it.
 To read more on why this always seems to eventually happen to good services, check out this book: https://chokepointcapitalism.com/
