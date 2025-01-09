@@ -18,9 +18,10 @@ namespace MoonSharp.Interpreter.Interop
 		/// Initializes a new instance of the <see cref="MoonSharpVisibleAttribute"/> class.
 		/// </summary>
 		/// <param name="visible">if set to true the member will be exposed to scripts, if false the member will be hidden.</param>
-		public MoonSharpVisibleAttribute(bool visible)
+		public MoonSharpVisibleAttribute(bool visible = true)
 		{
 			Visible = visible;
 		}
+
 	}
 }

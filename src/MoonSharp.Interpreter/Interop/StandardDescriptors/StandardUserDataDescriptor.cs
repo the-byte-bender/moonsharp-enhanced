@@ -40,6 +40,32 @@ namespace MoonSharp.Interpreter.Interop
 			FillMemberList();
 		}
 
+		private bool ShouldIncludeMember(string memberName, MemberInfo member, HashSet<string> membersToIgnore)
+		{
+			if (AccessMode == InteropAccessMode.HideMembers)
+				return false;
+
+			// First check the HideMember HashSet
+			if (membersToIgnore.Contains(memberName))
+				return false;
+
+			// Get default visibility setting from the type
+			var defaultVisibilityAttr = Framework.Do.GetCustomAttributes(Type, typeof(MoonSharpDefaultVisibilityAttribute), true)
+				.OfType<MoonSharpDefaultVisibilityAttribute>()
+				.FirstOrDefault();
+
+			// If no default visibility attribute is present, maintain original behavior (visible by default)
+			if (defaultVisibilityAttr == null)
+				return true;
+
+			// If default is visible, include unless hidden (which we checked above)
+			if (defaultVisibilityAttr.IsVisibleByDefault)
+				return true;
+
+			// If default is hidden, only include if explicitly marked visible
+			return member.GetVisibilityFromAttributes() == true;
+		}
+
 		/// <summary>
 		/// Fills the member list.
 		/// </summary>
@@ -58,34 +84,32 @@ namespace MoonSharp.Interpreter.Interop
 
 			if (!type.IsDelegateType())
 			{
-				// add declared constructors
+				// Add constructors
 				foreach (ConstructorInfo ci in Framework.Do.GetConstructors(type))
 				{
-					if (membersToIgnore.Contains("__new"))
-						continue;
-
-					AddMember("__new", MethodMemberDescriptor.TryCreateIfVisible(ci, this.AccessMode));
+					if (ShouldIncludeMember("__new", ci, membersToIgnore))
+					{
+						AddMember("__new", MethodMemberDescriptor.TryCreateIfVisible(ci, this.AccessMode));
+					}
 				}
 
-				// valuetypes don't reflect their empty ctor.. actually empty ctors are a perversion, we don't care and implement ours
+				// Handle value type constructor
 				if (Framework.Do.IsValueType(type) && !membersToIgnore.Contains("__new"))
+				{
 					AddMember("__new", new ValueTypeDefaultCtorMemberDescriptor(type));
+				}
 			}
 
-
-			// add methods to method list and metamethods
+			// Add methods
 			foreach (MethodInfo mi in Framework.Do.GetMethods(type))
 			{
-				if (membersToIgnore.Contains(mi.Name)) continue;
+				if (!ShouldIncludeMember(mi.Name, mi, membersToIgnore))
+					continue;
 
 				MethodMemberDescriptor md = MethodMemberDescriptor.TryCreateIfVisible(mi, this.AccessMode);
 
-				if (md != null)
+				if (md != null && MethodMemberDescriptor.CheckMethodIsCompatible(mi, false))
 				{
-					if (!MethodMemberDescriptor.CheckMethodIsCompatible(mi, false))
-						continue;
-
-					// transform explicit/implicit conversions to a friendlier name.
 					string name = mi.Name;
 					if (mi.IsSpecialName && (mi.Name == SPECIALNAME_CAST_EXPLICIT || mi.Name == SPECIALNAME_CAST_IMPLICIT))
 					{
@@ -101,51 +125,50 @@ namespace MoonSharp.Interpreter.Interop
 				}
 			}
 
-			// get properties
+			// Add properties
 			foreach (PropertyInfo pi in Framework.Do.GetProperties(type))
 			{
-				if (pi.IsSpecialName || pi.GetIndexParameters().Any() || membersToIgnore.Contains(pi.Name))
-					continue;
-
-				AddMember(pi.Name, PropertyMemberDescriptor.TryCreateIfVisible(pi, this.AccessMode));
+				if (!pi.IsSpecialName && !pi.GetIndexParameters().Any() && ShouldIncludeMember(pi.Name, pi, membersToIgnore))
+				{
+					AddMember(pi.Name, PropertyMemberDescriptor.TryCreateIfVisible(pi, this.AccessMode));
+				}
 			}
 
-			// get fields
+			// Add fields
 			foreach (FieldInfo fi in Framework.Do.GetFields(type))
 			{
-				if (fi.IsSpecialName || membersToIgnore.Contains(fi.Name))
-					continue;
-
-				AddMember(fi.Name, FieldMemberDescriptor.TryCreateIfVisible(fi, this.AccessMode));
+				if (!fi.IsSpecialName && ShouldIncludeMember(fi.Name, fi, membersToIgnore))
+				{
+					AddMember(fi.Name, FieldMemberDescriptor.TryCreateIfVisible(fi, this.AccessMode));
+				}
 			}
 
-			// get events
+			// Add events
 			foreach (EventInfo ei in Framework.Do.GetEvents(type))
 			{
-				if (ei.IsSpecialName || membersToIgnore.Contains(ei.Name))
-					continue;
-
-				AddMember(ei.Name, EventMemberDescriptor.TryCreateIfVisible(ei, this.AccessMode));
+				if (!ei.IsSpecialName && ShouldIncludeMember(ei.Name, ei, membersToIgnore))
+				{
+					AddMember(ei.Name, EventMemberDescriptor.TryCreateIfVisible(ei, this.AccessMode));
+				}
 			}
 
-			// get nested types and create statics
+			// Add nested types
 			foreach (Type nestedType in Framework.Do.GetNestedTypes(type))
 			{
-				if (membersToIgnore.Contains(nestedType.Name))
-					continue;
-
-				if (!Framework.Do.IsGenericTypeDefinition(nestedType))
+				if (ShouldIncludeMember(nestedType.Name, nestedType, membersToIgnore) &&
+					!Framework.Do.IsGenericTypeDefinition(nestedType))
 				{
-					if (Framework.Do.IsNestedPublic(nestedType) || Framework.Do.GetCustomAttributes(nestedType, typeof(MoonSharpUserDataAttribute), true).Length > 0)
+					if (Framework.Do.IsNestedPublic(nestedType) ||
+						Framework.Do.GetCustomAttributes(nestedType, typeof(MoonSharpUserDataAttribute), true).Length > 0)
 					{
 						var descr = UserData.RegisterType(nestedType, this.AccessMode);
-
 						if (descr != null)
 							AddDynValue(nestedType.Name, UserData.CreateStatic(nestedType));
 					}
 				}
 			}
 
+			// Handle array indexers
 			if (!membersToIgnore.Contains("[this]"))
 			{
 				if (Type.IsArray)
@@ -170,7 +193,6 @@ namespace MoonSharp.Interpreter.Interop
 				}
 			}
 		}
-
 
 
 
